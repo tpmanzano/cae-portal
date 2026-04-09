@@ -146,6 +146,52 @@
           </a>
         </div>
 
+        <div class="section-title">Report Registry</div>
+        <div class="card" style="overflow-x: auto;">
+          <div class="card-title">All Reports — Filters & Deployment</div>
+          <div class="card-subtitle">Where each report lives, what view it queries, what filters are applied</div>
+          <table class="data-table" id="report-registry" style="font-size: 12px;">
+            <thead>
+              <tr>
+                <th onclick="sortRegistry('name')">Report Name</th>
+                <th onclick="sortRegistry('page')">Page</th>
+                <th onclick="sortRegistry('route')">API Route</th>
+                <th onclick="sortRegistry('view')">Source View</th>
+                <th onclick="sortRegistry('filters')">Filters Applied</th>
+                <th onclick="sortRegistry('columns')">Columns Shown</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Pipeline Summary</td><td>All Reports</td><td>/api/reports/pipeline-summary</td><td>gold_vw_escrow_complete</td><td>Bin Phase IN (Opening, Processing, Funding, Closing)</td><td>Phase, Count, Fees Total</td></tr>
+              <tr><td>Officer Workload</td><td>All Reports</td><td>/api/reports/officer-workload</td><td>gold_vw_escrow_complete</td><td>Bin Phase IN (Opening, Processing, Funding, Closing)</td><td>Officer, Count, Fees Total, Phase breakdown</td></tr>
+              <tr><td>Open Escrows — All</td><td>All Reports</td><td>/api/reports/open-escrows</td><td>gold_vw_escrow_complete</td><td>Bin Phase IN (Opening, Processing, Funding, Closing)</td><td>Escrow #, Open Date, Phase, Days, Address, Officer, List Agent, Sell Agent, Fees Total, Tasks</td></tr>
+              <tr><td>Open Escrows — Opening</td><td>Opening</td><td>/api/reports/open-escrows</td><td>gold_vw_escrow_complete</td><td>Bin Phase IN (...) + client filter: Opening</td><td>Same as All</td></tr>
+              <tr><td>Open Escrows — Processing</td><td>Processing</td><td>/api/reports/open-escrows</td><td>gold_vw_escrow_complete</td><td>Bin Phase IN (...) + client filter: Processing</td><td>Same as All</td></tr>
+              <tr><td>Open Escrows — Funding</td><td>Funding</td><td>/api/reports/open-escrows</td><td>gold_vw_escrow_complete</td><td>Bin Phase IN (...) + client filter: Funding</td><td>Same as All</td></tr>
+              <tr><td>Open Escrows — Closing</td><td>Closing</td><td>/api/reports/open-escrows</td><td>gold_vw_escrow_complete</td><td>Bin Phase IN (...) + client filter: Closing</td><td>Same as All</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <script>
+          let regSortCol = null;
+          let regSortAsc = true;
+          function sortRegistry(col) {
+            const table = document.getElementById('report-registry');
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const colMap = { name: 0, page: 1, route: 2, view: 3, filters: 4, columns: 5 };
+            const idx = colMap[col];
+            if (regSortCol === col) { regSortAsc = !regSortAsc; } else { regSortCol = col; regSortAsc = true; }
+            rows.sort((a, b) => {
+              const va = a.cells[idx].textContent;
+              const vb = b.cells[idx].textContent;
+              return regSortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+            });
+            rows.forEach(r => tbody.appendChild(r));
+          }
+        </script>
+
         <div class="section-title">Infrastructure</div>
         <div class="card" style="overflow-x: auto;">
           <div class="card-title">Railway Constraints</div>
