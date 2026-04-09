@@ -74,6 +74,8 @@
   --badge-coming-text: #60a5fa;
 }
 
+/* ── Shared Layout Tokens (theme-independent) ── */
+:root {
   /* Sidebar */
   --sidebar-width: 256px;
   --sidebar-collapsed: 64px;
