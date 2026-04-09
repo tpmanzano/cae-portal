@@ -26,6 +26,47 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// ── Account Menu ──
+function toggleAccountMenu() {
+  const dropdown = document.getElementById('account-dropdown');
+  dropdown.classList.toggle('open');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', (e) => {
+  const menu = document.querySelector('.account-menu');
+  const dropdown = document.getElementById('account-dropdown');
+  if (menu && dropdown && !menu.contains(e.target)) {
+    dropdown.classList.remove('open');
+  }
+});
+
+// Load user info
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const res = await fetch('/api/me');
+    if (res.ok) {
+      const user = await res.json();
+      const nameEl = document.getElementById('account-name');
+      const emailEl = document.getElementById('account-email');
+      const avatarEl = document.getElementById('account-avatar');
+
+      if (nameEl) nameEl.textContent = user.name || 'User';
+      if (emailEl) emailEl.textContent = user.email || '';
+      if (avatarEl) {
+        if (user.photo) {
+          avatarEl.style.backgroundImage = `url(${user.photo})`;
+          avatarEl.textContent = '';
+        } else {
+          avatarEl.textContent = (user.name || user.email || 'U').charAt(0).toUpperCase();
+        }
+      }
+    }
+  } catch (e) {
+    // Not logged in or API unavailable
+  }
+});
+
 // Nav item nested toggle
 document.querySelectorAll('.nav-item[data-toggle]').forEach(item => {
   item.addEventListener('click', (e) => {

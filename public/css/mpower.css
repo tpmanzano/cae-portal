@@ -642,6 +642,100 @@ tr:hover {
   background: var(--accent-subtle);
 }
 
+/* ── Account Menu ── */
+.account-menu {
+  position: relative;
+}
+
+.account-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 50%;
+  transition: box-shadow 0.15s;
+}
+
+.account-btn:hover {
+  box-shadow: 0 0 0 2px var(--accent-subtle);
+}
+
+.account-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-inverse);
+  font-size: 13px;
+  font-weight: 600;
+  background-size: cover;
+  background-position: center;
+}
+
+.account-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: var(--space-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  min-width: 220px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  z-index: 30;
+  overflow: hidden;
+}
+
+.account-dropdown.open {
+  display: block;
+}
+
+.account-info {
+  padding: var(--space-lg);
+}
+
+.account-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.account-email {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.account-divider {
+  height: 1px;
+  background: var(--border);
+}
+
+.account-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  width: 100%;
+  padding: var(--space-md) var(--space-lg);
+  border: none;
+  background: none;
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.account-option:hover {
+  background: var(--bg-sidebar-hover);
+  color: var(--text-primary);
+}
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .sidebar {
