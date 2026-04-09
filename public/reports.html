@@ -218,28 +218,59 @@
       currentFilter = currentView.charAt(0).toUpperCase() + currentView.slice(1);
     }
 
-    // Load data
-    const fetches = [fetch('/api/reports/open-escrows').then(r => r.json())];
-    if (currentView === 'all') {
-      fetches.push(fetch('/api/reports/pipeline-summary').then(r => r.json()));
-      fetches.push(fetch('/api/reports/officer-workload').then(r => r.json()));
+    // Cache data in sessionStorage so page navigation doesn't re-fetch
+    const CACHE_KEY = 'cae_reports_cache';
+    const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+    function getCachedData() {
+      try {
+        const cached = sessionStorage.getItem(CACHE_KEY);
+        if (!cached) return null;
+        const parsed = JSON.parse(cached);
+        if (Date.now() - parsed.timestamp > CACHE_TTL) return null;
+        return parsed.data;
+      } catch(e) { return null; }
     }
 
-    Promise.all(fetches).then(results => {
-      const escrows = results[0];
-      allEscrows = escrows.escrows;
-      renderEscrows(allEscrows);
+    function setCachedData(data) {
+      try {
+        sessionStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
+      } catch(e) {}
+    }
 
-      if (currentView === 'all' && results.length > 1) {
-        renderPipeline(results[1]);
-        renderOfficers(results[2]);
+    function loadAndRender() {
+      const cached = getCachedData();
+      if (cached) {
+        allEscrows = cached.escrows;
+        renderEscrows(allEscrows);
+        if (currentView === 'all') {
+          renderPipeline(cached.pipeline);
+          renderOfficers(cached.officers);
+        }
+        return;
       }
-    }).catch(err => {
-      document.querySelectorAll('.loading').forEach(el => {
-        el.className = 'error';
-        el.textContent = 'Failed to load data: ' + err.message;
+
+      Promise.all([
+        fetch('/api/reports/open-escrows').then(r => r.json()),
+        fetch('/api/reports/pipeline-summary').then(r => r.json()),
+        fetch('/api/reports/officer-workload').then(r => r.json()),
+      ]).then(([escrows, pipeline, officers]) => {
+        setCachedData({ escrows: escrows.escrows, pipeline, officers });
+        allEscrows = escrows.escrows;
+        renderEscrows(allEscrows);
+        if (currentView === 'all') {
+          renderPipeline(pipeline);
+          renderOfficers(officers);
+        }
+      }).catch(err => {
+        document.querySelectorAll('.loading').forEach(el => {
+          el.className = 'error';
+          el.textContent = 'Failed to load data: ' + err.message;
+        });
       });
-    });
+    }
+
+    loadAndRender();
 
     function fmt(n) {
       return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
