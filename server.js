@@ -429,6 +429,23 @@ app.get('/officers/erin', requireOfficerAccess('erin'), (req, res) => {
 });
 
 // ══════════════════════════════════════════════
+// ADMIN — Tom only
+// ══════════════════════════════════════════════
+
+const ADMIN_ALLOWED = ['tpmanzano@gmail.com', 'tom@mpoweranalytics.com'];
+
+function requireAdmin(req, res, next) {
+  if (!req.isAuthenticated()) return res.redirect('/login');
+  const email = (req.user.email || '').toLowerCase();
+  if (ADMIN_ALLOWED.includes(email)) return next();
+  res.status(403).send('Access restricted');
+}
+
+app.get('/admin', requireAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// ══════════════════════════════════════════════
 // AMY'S CORNER — restricted access
 // ══════════════════════════════════════════════
 

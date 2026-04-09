@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin — California Advantage Escrow</title>
+  <link rel="stylesheet" href="/css/mpower.css?v=5" />
+  <style>
+    .item-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-lg); }
+    .item-card { background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--space-lg); transition: border-color 0.2s; text-decoration: none; color: inherit; }
+    .item-card:hover { border-color: var(--accent); }
+    .item-card-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+    .item-card-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+    .item-card-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; margin-bottom: 8px; }
+    .badge-dev { background: #fef3c7; color: #92400e; }
+    .badge-ready { background: #d1fae5; color: #065f46; }
+    .badge-idea { background: #ede9fe; color: #5b21b6; }
+    [data-theme="dark"] .badge-dev { background: #4a3500; color: #fcd34d; }
+    [data-theme="dark"] .badge-ready { background: #064e3b; color: #6ee7b7; }
+    [data-theme="dark"] .badge-idea { background: #3b1f6e; color: #c4b5fd; }
+    .section-title { font-size: 18px; font-weight: 600; margin-bottom: var(--space-md); margin-top: var(--space-xl); }
+    .section-title:first-of-type { margin-top: 0; }
+    .admin-note { font-size: 12px; color: var(--text-muted); margin-bottom: var(--space-xl); padding: var(--space-md); background: var(--surface-card); border: 1px dashed var(--border); border-radius: var(--radius); }
+  </style>
+</head>
+<body>
+
+  <div class="grid-bg"></div>
+
+  <nav class="topnav">
+    <div class="topnav-left">
+      <button class="collapse-btn" onclick="toggleSidebar()" title="Toggle sidebar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+      </button>
+      <a href="/" class="topnav-brand">
+        <span style="font-weight: 700;">California Advantage Escrow</span>
+      </a>
+    </div>
+    <div class="topnav-center">
+      <a href="/" class="topnav-link">CAE</a>
+      <a href="/reports" class="topnav-link">Reports</a>
+      <a href="/admin" class="topnav-link active">Admin</a>
+    </div>
+    <div class="topnav-right">
+      <span class="topnav-env">California Advantage Escrow</span>
+      <div class="account-menu">
+        <button class="account-btn" onclick="toggleAccountMenu()" id="account-btn">
+          <div class="account-avatar" id="account-avatar" style="color: white; display: flex; align-items: center; justify-content: center;">T</div>
+        </button>
+        <div class="account-dropdown" id="account-dropdown">
+          <div class="account-info" id="account-info">
+            <div class="account-name" id="account-name">User</div>
+            <div class="account-email" id="account-email">email</div>
+          </div>
+          <div class="account-divider"></div>
+          <button class="account-option" onclick="toggleTheme()">
+            <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            <span>Toggle Theme</span>
+          </button>
+          <a href="/auth/logout" class="account-option">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span>Sign Out</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+        <a href="/" class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          <span>Dashboard</span>
+        </a>
+
+        <div class="nav-section">
+          <div class="nav-section-label">Escrow</div>
+          <a href="/reports" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span>Daily Reports</span>
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-label">Officers</div>
+          <a href="/officers/erin" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>Erin Ferrell</span>
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-label">Tools</div>
+          <a href="/dre-lookup" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <span>DRE Lookup</span>
+          </a>
+        </div>
+
+        <a href="/amy" class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>Amy's Corner</span>
+        </a>
+
+        <!-- Admin link injected by app.js for Tom only -->
+      </nav>
+      <div class="sidebar-footer">
+        <p>Powered by <span class="brand">mPowerAnalytics</span></p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="content">
+        <h1 class="page-title">Admin</h1>
+        <p class="page-subtitle">Development workspace — build here, deploy when ready</p>
+
+        <div class="admin-note">Only visible to you. Build reports and features here, then move links to Amy's Corner or officer pages when ready to reveal.</div>
+
+        <div class="section-title">In Development</div>
+        <div class="item-grid">
+          <div class="item-card">
+            <span class="item-card-badge badge-dev">Building</span>
+            <div class="item-card-title">Owner MTD Summary</div>
+            <div class="item-card-desc">Month-to-date fee revenue, volume, close rate. For Amy's Corner when ready.</div>
+          </div>
+          <div class="item-card">
+            <span class="item-card-badge badge-dev">Building</span>
+            <div class="item-card-title">Agent Production Report</div>
+            <div class="item-card-desc">Agent-level production analysis — closings, volume, commission by agent.</div>
+          </div>
+          <div class="item-card">
+            <span class="item-card-badge badge-idea">Idea</span>
+            <div class="item-card-title">Investor Performance</div>
+            <div class="item-card-desc">Investor-facing returns and escrow tracking. For Amy and future investor portal.</div>
+          </div>
+        </div>
+
+        <div class="section-title">Ready to Deploy</div>
+        <div class="item-grid">
+          <a href="/reports" class="item-card">
+            <span class="item-card-badge badge-ready">Live</span>
+            <div class="item-card-title">Pipeline Reports</div>
+            <div class="item-card-desc">Already deployed — pipeline overview, phase views, officer workload.</div>
+          </a>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>

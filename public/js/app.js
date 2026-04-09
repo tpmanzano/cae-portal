@@ -58,6 +58,20 @@ document.addEventListener('DOMContentLoaded', async () => {
           avatarEl.textContent = (user.name || user.email || 'U').charAt(0).toUpperCase();
         }
       }
+
+      // Admin link — only visible to Tom
+      const adminEmails = ['tpmanzano@gmail.com', 'tom@mpoweranalytics.com'];
+      if (adminEmails.includes((user.email || '').toLowerCase())) {
+        const nav = document.querySelector('.sidebar-nav');
+        if (nav && !document.getElementById('admin-nav-link')) {
+          const adminLink = document.createElement('a');
+          adminLink.href = '/admin';
+          adminLink.className = 'nav-item' + (window.location.pathname === '/admin' ? ' active' : '');
+          adminLink.id = 'admin-nav-link';
+          adminLink.innerHTML = '<svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Admin</span>';
+          nav.appendChild(adminLink);
+        }
+      }
     }
   } catch (e) {
     // Not logged in or API unavailable
