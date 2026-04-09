@@ -10,9 +10,6 @@ function toggleTheme() {
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
   sidebar.classList.toggle('collapsed');
-  // Also toggle on app container for reliable CSS targeting
-  const app = document.querySelector('.app');
-  if (app) app.classList.toggle('sidebar-collapsed', sidebar.classList.contains('collapsed'));
   localStorage.setItem('sidebar-collapsed', sidebar.classList.contains('collapsed'));
 }
 
@@ -22,13 +19,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const savedTheme = localStorage.getItem('mpower-theme') || 'light';
   document.documentElement.setAttribute('data-theme', savedTheme);
 
-  // Sidebar — default to expanded
+  // Sidebar
   const collapsed = localStorage.getItem('sidebar-collapsed') === 'true';
   if (collapsed) {
-    const sidebar = document.getElementById('sidebar');
-    const app = document.querySelector('.app');
-    if (sidebar) sidebar.classList.add('collapsed');
-    if (app) app.classList.add('sidebar-collapsed');
+    document.getElementById('sidebar').classList.add('collapsed');
   }
 });
 
