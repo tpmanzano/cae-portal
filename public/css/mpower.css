@@ -391,7 +391,8 @@ body {
   min-height: 100vh;
 }
 
-.sidebar.collapsed ~ .main {
+.sidebar.collapsed ~ .main,
+.app.sidebar-collapsed .main {
   margin-left: var(--sidebar-collapsed);
 }
 
