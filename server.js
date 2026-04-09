@@ -305,21 +305,19 @@ app.post('/api/dre-lookup', requireAuth, async (req, res) => {
 
 // Pipeline summary — open escrows by phase
 // Source: cae.gold_vw_escrow_complete
-// Columns used: Bin Phase, Bin Status, Fees Total
+// Columns used: Bin Phase, Fees Total
 app.get('/api/reports/pipeline-summary', requireAuth, async (req, res) => {
   try {
-    const binStatus = req.query.status || 'Active';
     const result = await pool.query(`
       SELECT "Bin Phase" as phase, COUNT(*) as count,
         COALESCE(SUM("Fees Total"), 0) as total_value
       FROM cae.gold_vw_escrow_complete
       WHERE "Bin Phase" IN ('Opening', 'Processing', 'Funding', 'Closing')
-        AND "Bin Status" = $1
       GROUP BY "Bin Phase"
       ORDER BY CASE "Bin Phase"
         WHEN 'Opening' THEN 1 WHEN 'Processing' THEN 2
         WHEN 'Funding' THEN 3 WHEN 'Closing' THEN 4 END
-    `, [binStatus]);
+    `);
     const total = result.rows.reduce((acc, r) => ({
       count: acc.count + parseInt(r.count),
       value: acc.value + parseFloat(r.total_value)
@@ -333,11 +331,10 @@ app.get('/api/reports/pipeline-summary', requireAuth, async (req, res) => {
 
 // Open escrows — detailed table
 // Source: cae.gold_vw_escrow_complete
-// Columns used: Escrow Number, Open Date, Bin Phase, Bin Status, Property Address, Escrow Officer,
+// Columns used: Escrow Number, Open Date, Bin Phase, Property Address, Escrow Officer,
 //   Listing Agent 1, Selling Agent 1, Fees Total, Tasks Completed, Tasks Total, Number of Days
 app.get('/api/reports/open-escrows', requireAuth, async (req, res) => {
   try {
-    const binStatus = req.query.status || 'Active';
     const result = await pool.query(`
       SELECT "Escrow Number" as escrow_number,
         "Open Date"::text as open_date,
@@ -352,9 +349,8 @@ app.get('/api/reports/open-escrows', requireAuth, async (req, res) => {
         "Number of Days" as days_open
       FROM cae.gold_vw_escrow_complete
       WHERE "Bin Phase" IN ('Opening', 'Processing', 'Funding', 'Closing')
-        AND "Bin Status" = $1
       ORDER BY "Open Date" DESC
-    `, [binStatus]);
+    `);
     res.json({ escrows: result.rows, count: result.rowCount });
   } catch (err) {
     console.error('Open escrows error:', err.message);
@@ -364,10 +360,9 @@ app.get('/api/reports/open-escrows', requireAuth, async (req, res) => {
 
 // Officer workload — escrows per officer
 // Source: cae.gold_vw_escrow_complete
-// Columns used: Escrow Officer, Bin Phase, Bin Status, Fees Total
+// Columns used: Escrow Officer, Bin Phase, Fees Total
 app.get('/api/reports/officer-workload', requireAuth, async (req, res) => {
   try {
-    const binStatus = req.query.status || 'Active';
     const result = await pool.query(`
       SELECT "Escrow Officer" as officer,
         COUNT(*) as count,
@@ -378,10 +373,9 @@ app.get('/api/reports/officer-workload', requireAuth, async (req, res) => {
         SUM(CASE WHEN "Bin Phase" = 'Closing' THEN 1 ELSE 0 END) as closing
       FROM cae.gold_vw_escrow_complete
       WHERE "Bin Phase" IN ('Opening', 'Processing', 'Funding', 'Closing')
-        AND "Bin Status" = $1
       GROUP BY "Escrow Officer"
       ORDER BY COUNT(*) DESC
-    `, [binStatus]);
+    `);
     res.json({ officers: result.rows });
   } catch (err) {
     console.error('Officer workload error:', err.message);
