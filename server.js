@@ -212,6 +212,66 @@ app.use('/css', express.static(path.join(__dirname, 'public', 'css')));
 app.use('/js', express.static(path.join(__dirname, 'public', 'js')));
 app.use('/images', express.static(path.join(__dirname, 'public', 'images')));
 
+// ══════════════════════════════════════════════
+// DRE LOOKUP API — native proxy (no iframe)
+// Source: California DRE public licensee database
+// ══════════════════════════════════════════════
+
+const DRE_SEARCH_URL = 'https://www2.dre.ca.gov/publicasp/pplinfo.asp?start=1';
+
+app.post('/api/dre-lookup', requireAuth, async (req, res) => {
+  const licenseId = (req.body.license_id || '').trim();
+
+  if (!licenseId || !/^\d{1,8}$/.test(licenseId)) {
+    return res.status(400).json({ error: 'Invalid license number. Digits only, max 8 characters.' });
+  }
+
+  try {
+    const params = new URLSearchParams();
+    params.append('h_nextstep', 'SEARCH');
+    params.append('LICENSEE_NAME', '');
+    params.append('CITY_STATE', '');
+    params.append('LICENSE_ID', licenseId);
+
+    const dreResp = await fetch(DRE_SEARCH_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString(),
+    });
+
+    if (!dreResp.ok) {
+      return res.status(502).json({ error: `DRE site returned status ${dreResp.status}` });
+    }
+
+    const html = await dreResp.text();
+
+    if (html.includes('No records found') || !html.includes('License Type:')) {
+      return res.status(404).json({ error: `No records found for license ID: ${licenseId}` });
+    }
+
+    // Extract result section
+    const match = html.match(
+      /License information taken[\s\S]*?Public information request complete\s*(?:<<<<|&lt;&lt;&lt;&lt;)/
+    );
+    let content = match ? match[0] : html;
+
+    // Rewrite relative URLs to absolute
+    content = content.replace(/HREF\s*=\s*"\/static\//gi, 'HREF = "https://www2.dre.ca.gov/static/');
+    content = content.replace(/HREF\s*=\s*"\/publicasp\//gi, 'HREF = "https://www2.dre.ca.gov/publicasp/');
+    content = content.replace(/href\s*=\s*'\/static\//gi, "href='https://www2.dre.ca.gov/static/");
+    content = content.replace(/href\s*=\s*'\/publicasp\//gi, "href='https://www2.dre.ca.gov/publicasp/");
+
+    // Extract name
+    const nameMatch = html.match(/<strong>Name:<\/strong>[\s\S]*?<\/td>\s*<td>[\s\S]*?>([\w,\s]+)</);
+    const name = nameMatch ? nameMatch[1].trim() : '';
+
+    res.json({ html: content, name, license_id: licenseId });
+
+  } catch (err) {
+    res.status(502).json({ error: `Could not reach DRE site: ${err.message}` });
+  }
+});
+
 // Protected pages
 app.get('/', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));

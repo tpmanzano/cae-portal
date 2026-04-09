@@ -100,8 +100,26 @@
         <h1 class="page-title">DRE License Lookup</h1>
         <p class="page-subtitle">Search California Department of Real Estate licensee records — 436K+ active licenses</p>
 
-        <div class="card" style="padding: 0; overflow: hidden;">
-          <iframe id="dre-frame" src="https://dre-lookup.onrender.com" style="width: 100%; height: 600px; border: none;"></iframe>
+        <div class="card">
+          <form id="lookupForm" onsubmit="doLookup(event)">
+            <div style="display: flex; gap: 12px; align-items: flex-end;">
+              <div style="flex: 1;">
+                <label for="licenseInput" style="display: block; font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">DRE License Number</label>
+                <input type="text" id="licenseInput" placeholder="e.g. 01430466" maxlength="8" autocomplete="off" autofocus
+                  style="width: 100%; padding: 10px 14px; font-size: 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-card); color: var(--text-primary); outline: none;">
+              </div>
+              <button type="submit" id="lookupBtn" class="btn-primary" style="padding: 10px 28px; font-size: 15px; font-weight: 600; border: none; border-radius: var(--radius); cursor: pointer; background: var(--accent); color: white;">Lookup</button>
+            </div>
+          </form>
+          <div id="status" style="margin-top: 12px; font-size: 13px; color: var(--text-muted);"></div>
+        </div>
+
+        <div class="card" id="resultCard" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
+            <div class="card-title" id="resultTitle" style="margin: 0;">License Information</div>
+            <button onclick="printResult()" style="padding: 8px 20px; font-size: 13px; font-weight: 600; border: none; border-radius: var(--radius); cursor: pointer; background: #2d7d46; color: white;">Save as PDF</button>
+          </div>
+          <div id="resultContent" style="font-family: Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.6;"></div>
         </div>
 
         <div class="card">
@@ -122,6 +140,64 @@
             </div>
           </div>
         </div>
+
+    <script>
+      const input = document.getElementById('licenseInput');
+      const btn = document.getElementById('lookupBtn');
+      const status = document.getElementById('status');
+      const resultCard = document.getElementById('resultCard');
+      const resultTitle = document.getElementById('resultTitle');
+      const resultContent = document.getElementById('resultContent');
+
+      input.addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '');
+      });
+
+      async function doLookup(e) {
+        e.preventDefault();
+        const licenseId = input.value.trim();
+        if (!licenseId) { setStatus('Please enter a license number.', true); return; }
+
+        btn.disabled = true;
+        setStatus('Looking up license...');
+        resultCard.style.display = 'none';
+
+        try {
+          const resp = await fetch('/api/dre-lookup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ license_id: licenseId }),
+          });
+          const data = await resp.json();
+          if (!resp.ok) { setStatus(data.error || 'Lookup failed.', true); return; }
+
+          resultContent.innerHTML = data.html;
+          resultTitle.textContent = data.name ? data.name + ' \u2014 ' + data.license_id : 'License ' + data.license_id;
+          resultCard.style.display = 'block';
+          setStatus('');
+
+          const namePart = data.name ? data.name.replace(/,\s*/g, '_').replace(/\s+/g, '_') : '';
+          const now = new Date();
+          const timestamp = now.toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '_');
+          document.title = namePart
+            ? 'DRE_License_' + namePart + '_' + data.license_id + '_' + timestamp
+            : 'DRE_License_' + data.license_id + '_' + timestamp;
+
+          resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch (err) {
+          setStatus('Connection error. Check your internet and try again.', true);
+        } finally {
+          btn.disabled = false;
+        }
+      }
+
+      function setStatus(msg, isError) {
+        status.textContent = msg;
+        status.style.color = isError ? '#c53030' : 'var(--text-muted)';
+      }
+
+      function printResult() { window.print(); }
+    </script>
       </div>
     </main>
 
