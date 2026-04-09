@@ -19,11 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const savedTheme = localStorage.getItem('mpower-theme') || 'light';
   document.documentElement.setAttribute('data-theme', savedTheme);
 
-  // Sidebar
-  const collapsed = localStorage.getItem('sidebar-collapsed') === 'true';
-  if (collapsed) {
-    document.getElementById('sidebar').classList.add('collapsed');
-  }
+  // Sidebar — always start expanded (collapsed state not persisted until UX is stable)
+  localStorage.removeItem('sidebar-collapsed');
 });
 
 // ── Account Menu ──
