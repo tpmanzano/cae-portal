@@ -1,3 +1,56 @@
+// ── Report Data Preload ──
+// Fetches report data on any page load so Reports pages render instantly
+(function preloadReportData() {
+  const CACHE_KEY = 'cae_reports_cache';
+  const CACHE_TTL = 5 * 60 * 1000;
+  try {
+    const cached = sessionStorage.getItem(CACHE_KEY);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (Date.now() - parsed.timestamp < CACHE_TTL) return; // still fresh
+    }
+  } catch(e) {}
+  // Fetch in background — don't block page load
+  Promise.all([
+    fetch('/api/reports/open-escrows').then(r => r.ok ? r.json() : null),
+    fetch('/api/reports/pipeline-summary').then(r => r.ok ? r.json() : null),
+    fetch('/api/reports/officer-workload').then(r => r.ok ? r.json() : null),
+  ]).then(([escrows, pipeline, officers]) => {
+    if (escrows && pipeline && officers) {
+      try {
+        sessionStorage.setItem(CACHE_KEY, JSON.stringify({
+          data: { escrows: escrows.escrows, pipeline, officers },
+          timestamp: Date.now()
+        }));
+      } catch(e) {}
+    }
+  }).catch(() => {}); // silent — don't break the page if reports API is down
+})();
+
+// ── Refresh Report Data (called from refresh button) ──
+function refreshReportData() {
+  sessionStorage.removeItem('cae_reports_cache');
+  if (window.location.pathname.startsWith('/reports')) {
+    window.location.reload();
+  } else {
+    // Re-preload silently
+    Promise.all([
+      fetch('/api/reports/open-escrows').then(r => r.ok ? r.json() : null),
+      fetch('/api/reports/pipeline-summary').then(r => r.ok ? r.json() : null),
+      fetch('/api/reports/officer-workload').then(r => r.ok ? r.json() : null),
+    ]).then(([escrows, pipeline, officers]) => {
+      if (escrows && pipeline && officers) {
+        try {
+          sessionStorage.setItem('cae_reports_cache', JSON.stringify({
+            data: { escrows: escrows.escrows, pipeline, officers },
+            timestamp: Date.now()
+          }));
+        } catch(e) {}
+      }
+    }).catch(() => {});
+  }
+}
+
 // ── Theme Toggle ──
 function toggleTheme() {
   const current = document.documentElement.getAttribute('data-theme') || 'light';
