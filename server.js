@@ -397,6 +397,23 @@ app.get('/reports', requireAuth, (req, res) => {
 });
 
 // ══════════════════════════════════════════════
+// AMY'S CORNER — restricted access
+// ══════════════════════════════════════════════
+
+const AMY_ALLOWED = ['amyc@kw.com', 'tpmanzano@gmail.com', 'tom@mpoweranalytics.com'];
+
+function requireAmyAccess(req, res, next) {
+  if (!req.isAuthenticated()) return res.redirect('/login');
+  const email = (req.user.email || '').toLowerCase();
+  if (AMY_ALLOWED.includes(email)) return next();
+  res.status(403).send('Access restricted');
+}
+
+app.get('/amy', requireAmyAccess, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'amy.html'));
+});
+
+// ══════════════════════════════════════════════
 // START
 // ══════════════════════════════════════════════
 
