@@ -383,6 +383,16 @@ app.get('/api/reports/officer-workload', requireAuth, async (req, res) => {
   }
 });
 
+// Local dev bypass — auto-login when no OAuth configured
+if (!process.env.GOOGLE_CLIENT_ID && !process.env.MICROSOFT_CLIENT_ID) {
+  app.use((req, res, next) => {
+    if (!req.isAuthenticated()) {
+      req.login({ id: 'dev', email: 'tpmanzano@gmail.com', name: 'Dev User', provider: 'dev' }, () => {});
+    }
+    next();
+  });
+}
+
 // Protected pages
 app.get('/', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
