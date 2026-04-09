@@ -51,6 +51,9 @@
     .last-updated { font-size: 11px; color: var(--text-muted); margin-top: var(--space-sm); }
     .nav-item.sub-item { padding-left: 36px; font-size: 13px; opacity: 0.85; }
     .nav-item.sub-item.active { opacity: 1; color: var(--accent); }
+    .report-sub-items { overflow: hidden; transition: max-height 0.2s ease; }
+    .report-sub-items.collapsed { max-height: 0 !important; }
+    .nav-chevron.collapsed { transform: rotate(-90deg); }
   </style>
 </head>
 <body>
@@ -110,25 +113,28 @@
             <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
             <span>DRE Lookup</span>
           </a>
-          <a href="/reports" class="nav-item active">
+          <a href="/reports" class="nav-item active" onclick="toggleReportSubs(event)">
             <svg class="nav-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             <span>Reports</span>
+            <svg class="nav-chevron" id="reports-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-left: auto; transition: transform 0.2s;"><polyline points="6 9 12 15 18 9"/></svg>
           </a>
-          <a href="/reports?view=all" class="nav-item sub-item" id="nav-all">
-            <span>All Open</span>
-          </a>
-          <a href="/reports?view=opening" class="nav-item sub-item" id="nav-opening">
-            <span>Opening</span>
-          </a>
-          <a href="/reports?view=processing" class="nav-item sub-item" id="nav-processing">
-            <span>Processing</span>
-          </a>
-          <a href="/reports?view=funding" class="nav-item sub-item" id="nav-funding">
-            <span>Funding</span>
-          </a>
-          <a href="/reports?view=closing" class="nav-item sub-item" id="nav-closing">
-            <span>Closing</span>
-          </a>
+          <div class="report-sub-items" id="report-sub-items">
+            <a href="/reports?view=all" class="nav-item sub-item" id="nav-all">
+              <span>All Open</span>
+            </a>
+            <a href="/reports?view=opening" class="nav-item sub-item" id="nav-opening">
+              <span>Opening</span>
+            </a>
+            <a href="/reports?view=processing" class="nav-item sub-item" id="nav-processing">
+              <span>Processing</span>
+            </a>
+            <a href="/reports?view=funding" class="nav-item sub-item" id="nav-funding">
+              <span>Funding</span>
+            </a>
+            <a href="/reports?view=closing" class="nav-item sub-item" id="nav-closing">
+              <span>Closing</span>
+            </a>
+          </div>
         </div>
         <div class="nav-section">
           <div class="nav-section-label">Data</div>
@@ -362,6 +368,20 @@
       currentFilter = phase;
       renderEscrows(allEscrows);
     }
+
+    function toggleReportSubs(e) {
+      e.preventDefault();
+      const subs = document.getElementById('report-sub-items');
+      const chevron = document.getElementById('reports-chevron');
+      subs.classList.toggle('collapsed');
+      chevron.classList.toggle('collapsed');
+    }
+
+    // On page load, expand the sub-items and set max-height
+    (function() {
+      const subs = document.getElementById('report-sub-items');
+      subs.style.maxHeight = subs.scrollHeight + 'px';
+    })();
 
     function sortBy(col) {
       if (sortCol === col) { sortAsc = !sortAsc; }
