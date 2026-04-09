@@ -49,6 +49,8 @@
     .loading { text-align: center; padding: 40px; color: var(--text-muted); }
     .error { text-align: center; padding: 40px; color: #c53030; }
     .last-updated { font-size: 11px; color: var(--text-muted); margin-top: var(--space-sm); }
+    .nav-item.sub-item { padding-left: 36px; font-size: 13px; opacity: 0.85; }
+    .nav-item.sub-item.active { opacity: 1; color: var(--accent); }
   </style>
 </head>
 <body>
@@ -112,6 +114,21 @@
             <svg class="nav-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             <span>Reports</span>
           </a>
+          <a href="/reports?view=all" class="nav-item sub-item" id="nav-all">
+            <span>All Open</span>
+          </a>
+          <a href="/reports?view=opening" class="nav-item sub-item" id="nav-opening">
+            <span>Opening</span>
+          </a>
+          <a href="/reports?view=processing" class="nav-item sub-item" id="nav-processing">
+            <span>Processing</span>
+          </a>
+          <a href="/reports?view=funding" class="nav-item sub-item" id="nav-funding">
+            <span>Funding</span>
+          </a>
+          <a href="/reports?view=closing" class="nav-item sub-item" id="nav-closing">
+            <span>Closing</span>
+          </a>
         </div>
         <div class="nav-section">
           <div class="nav-section-label">Data</div>
@@ -136,22 +153,22 @@
 
     <main class="main">
       <div class="content">
-        <h1 class="page-title">Morning Reports</h1>
-        <p class="page-subtitle">Escrow pipeline from PostgreSQL — live data from RBJ</p>
+        <h1 class="page-title" id="page-title">Morning Reports</h1>
+        <p class="page-subtitle" id="page-subtitle">Escrow pipeline from PostgreSQL — live data from RBJ</p>
 
-        <!-- Pipeline Summary -->
-        <div id="pipeline-section">
+        <!-- Pipeline Summary (shows on All view) -->
+        <div id="pipeline-section" style="display: none;">
           <div class="loading">Loading pipeline data...</div>
         </div>
 
-        <!-- Officer Workload -->
-        <div id="officer-section" style="margin-top: var(--space-xl);">
+        <!-- Officer Workload (shows on All view) -->
+        <div id="officer-section" style="display: none; margin-top: var(--space-xl);">
           <div class="loading">Loading officer workload...</div>
         </div>
 
-        <!-- Open Escrows Table -->
+        <!-- Escrows Table (shows on all views) -->
         <div id="escrows-section" style="margin-top: var(--space-xl);">
-          <div class="loading">Loading open escrows...</div>
+          <div class="loading">Loading escrows...</div>
         </div>
       </div>
     </main>
@@ -164,16 +181,53 @@
     let sortCol = null;
     let sortAsc = true;
 
-    // Load all data on page load
-    Promise.all([
-      fetch('/api/reports/pipeline-summary').then(r => r.json()),
-      fetch('/api/reports/officer-workload').then(r => r.json()),
-      fetch('/api/reports/open-escrows').then(r => r.json()),
-    ]).then(([pipeline, officers, escrows]) => {
-      renderPipeline(pipeline);
-      renderOfficers(officers);
+    // Determine current view from URL
+    const params = new URLSearchParams(window.location.search);
+    const currentView = (params.get('view') || 'all').toLowerCase();
+
+    // Set page title and subtitle based on view
+    const viewTitles = {
+      all: ['Morning Reports', 'Escrow pipeline from PostgreSQL — live data from RBJ'],
+      opening: ['Opening Escrows', 'New escrows in the opening phase'],
+      processing: ['Processing Escrows', 'Escrows actively being processed'],
+      funding: ['Funding Escrows', 'Escrows in the funding phase'],
+      closing: ['Closing Escrows', 'Escrows in the closing phase'],
+    };
+    const [title, subtitle] = viewTitles[currentView] || viewTitles.all;
+    document.getElementById('page-title').textContent = title;
+    document.getElementById('page-subtitle').textContent = subtitle;
+
+    // Highlight active nav item
+    const activeNav = document.getElementById('nav-' + currentView);
+    if (activeNav) activeNav.classList.add('active');
+
+    // Show pipeline and officer sections only on "all" view
+    if (currentView === 'all') {
+      document.getElementById('pipeline-section').style.display = '';
+      document.getElementById('officer-section').style.display = '';
+    }
+
+    // Set the filter based on view
+    if (currentView !== 'all') {
+      currentFilter = currentView.charAt(0).toUpperCase() + currentView.slice(1);
+    }
+
+    // Load data
+    const fetches = [fetch('/api/reports/open-escrows').then(r => r.json())];
+    if (currentView === 'all') {
+      fetches.push(fetch('/api/reports/pipeline-summary').then(r => r.json()));
+      fetches.push(fetch('/api/reports/officer-workload').then(r => r.json()));
+    }
+
+    Promise.all(fetches).then(results => {
+      const escrows = results[0];
       allEscrows = escrows.escrows;
       renderEscrows(allEscrows);
+
+      if (currentView === 'all' && results.length > 1) {
+        renderPipeline(results[1]);
+        renderOfficers(results[2]);
+      }
     }).catch(err => {
       document.querySelectorAll('.loading').forEach(el => {
         el.className = 'error';
@@ -250,13 +304,13 @@
         <div class="card">
           <div class="card-title">Open Escrows (${filtered.length})</div>
           <div class="card-subtitle">All active escrow files</div>
-          <div class="filter-bar">
+          ${currentView === 'all' ? `<div class="filter-bar">
             <button class="filter-btn ${currentFilter === 'all' ? 'active' : ''}" onclick="setFilter('all')">All (${escrows.length})</button>
             <button class="filter-btn ${currentFilter === 'Opening' ? 'active' : ''}" onclick="setFilter('Opening')">Opening</button>
             <button class="filter-btn ${currentFilter === 'Processing' ? 'active' : ''}" onclick="setFilter('Processing')">Processing</button>
             <button class="filter-btn ${currentFilter === 'Funding' ? 'active' : ''}" onclick="setFilter('Funding')">Funding</button>
             <button class="filter-btn ${currentFilter === 'Closing' ? 'active' : ''}" onclick="setFilter('Closing')">Closing</button>
-          </div>
+          </div>` : ''}
           <div style="overflow-x: auto;">
             <table class="data-table">
               <thead>
