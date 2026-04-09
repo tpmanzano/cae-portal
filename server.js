@@ -64,11 +64,13 @@ function isAllowed(email) {
 // GOOGLE OAUTH
 // ══════════════════════════════════════════════
 
+const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: '/auth/google/callback'
+    callbackURL: `${BASE_URL}/auth/google/callback`
   }, (accessToken, refreshToken, profile, done) => {
     const email = profile.emails?.[0]?.value;
     if (!isAllowed(email)) {
@@ -101,7 +103,7 @@ if (process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET) {
   passport.use(new MicrosoftStrategy({
     clientID: process.env.MICROSOFT_CLIENT_ID,
     clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
-    callbackURL: '/auth/microsoft/callback',
+    callbackURL: `${BASE_URL}/auth/microsoft/callback`,
     scope: ['user.read'],
     tenant: 'common'
   }, (accessToken, refreshToken, profile, done) => {
@@ -141,8 +143,7 @@ app.post('/auth/magic-link', (req, res) => {
 
   // TODO: Send email via Gmail API with the magic link
   // For now, log the link (development mode)
-  const baseUrl = process.env.BASE_URL || `http://localhost:${PORT}`;
-  const link = `${baseUrl}/auth/magic-link/verify?token=${token}`;
+  const link = `${BASE_URL}/auth/magic-link/verify?token=${token}`;
   console.log(`[Magic Link] ${email}: ${link}`);
 
   res.json({ success: true, message: 'Login link sent to your email. Check your inbox.' });
