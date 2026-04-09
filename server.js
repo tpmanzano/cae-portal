@@ -62,6 +62,16 @@ app.use(passport.session());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Prevent browser/proxy caching of HTML pages — always serve fresh
+app.use((req, res, next) => {
+  if (req.accepts('html')) {
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+  }
+  next();
+});
+
 // ══════════════════════════════════════════════
 // PASSPORT SERIALIZATION
 // ══════════════════════════════════════════════
