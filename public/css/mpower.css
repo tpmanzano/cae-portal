@@ -676,22 +676,21 @@ tr:hover {
 }
 
 .account-dropdown {
-  display: none;
+  display: none !important;
   position: absolute;
-  top: 100%;
+  top: calc(100% + 4px);
   right: 0;
-  margin-top: var(--space-sm);
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   min-width: 220px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  z-index: 30;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: 100;
   overflow: hidden;
 }
 
 .account-dropdown.open {
-  display: block;
+  display: block !important;
 }
 
 .account-info {
