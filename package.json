@@ -1,0 +1,16 @@
+{
+  "name": "cae-portal",
+  "version": "0.1.0",
+  "description": "CAE tools portal — powered by mPower Analytics",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "express": "^4.22.1"
+  }
+}
