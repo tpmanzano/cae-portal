@@ -145,6 +145,34 @@
             <div class="item-card-desc">Already deployed — pipeline overview, phase views, officer workload.</div>
           </a>
         </div>
+
+        <div class="section-title">Infrastructure</div>
+        <div class="card" style="overflow-x: auto;">
+          <div class="card-title">Railway Constraints</div>
+          <div class="card-subtitle">Hobby plan — cae-portal + mpower-db</div>
+          <table class="data-table" style="font-size: 12px;">
+            <thead>
+              <tr>
+                <th>Constraint</th>
+                <th>Limit</th>
+                <th>Current</th>
+                <th>Risk</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Storage</strong></td><td>5 GB default, expandable to 250 GB ($0.15/GB/mo)</td><td>~10.8 MB</td><td>Low</td><td>Must manually increase before hitting limit — DB crashes if full</td></tr>
+              <tr><td><strong>Compute</strong></td><td>$5/mo credit, overage billed</td><td>2 services always-on</td><td>Unknown</td><td>$10/GB RAM, $20/vCPU beyond credit</td></tr>
+              <tr><td><strong>Connections</strong></td><td>100 default (configurable)</td><td>1 app server</td><td>Low</td><td>PgBouncer if pooling needed</td></tr>
+              <tr><td><strong>Egress</strong></td><td>$0.05/GB beyond credit</td><td>~few MB/day</td><td>Negligible</td><td>TCP proxy traffic counts</td></tr>
+              <tr><td><strong>Cron</strong></td><td>Native, min 5 min interval</td><td>Not configured</td><td>N/A</td><td>UTC timing</td></tr>
+              <tr><td><strong>Sync</strong></td><td>pg_dump/restore, COPY</td><td>Manual one-time (4/9)</td><td>No automation</td><td>Truncate-reload bronze, views recompute</td></tr>
+              <tr><td><strong>Escrows</strong></td><td>—</td><td>2,276 rows</td><td>Light</td><td>Grows slowly</td></tr>
+              <tr><td><strong>Progress Items</strong></td><td>—</td><td>189,725 rows</td><td>Moderate</td><td>Grows daily, joins to escrows</td></tr>
+              <tr><td><strong>View Recompute</strong></td><td>CPU on query</td><td>Per report load</td><td>Managed</td><td>5-min browser cache reduces queries</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </main>
   </div>
