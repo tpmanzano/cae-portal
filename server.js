@@ -6,8 +6,24 @@ const MicrosoftStrategy = require('passport-microsoft').Strategy;
 const crypto = require('crypto');
 const path = require('path');
 
+const { Pool } = require('pg');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// ══════════════════════════════════════════════
+// POSTGRESQL CONNECTION
+// Source: mpower database, cae schema
+// ══════════════════════════════════════════════
+
+const pool = new Pool({
+  host: process.env.PG_HOST || 'localhost',
+  port: process.env.PG_PORT || 5432,
+  database: process.env.PG_DATABASE || 'mpower',
+  user: process.env.PG_USER || 'postgres',
+  password: process.env.PG_PASSWORD || '',
+  ssl: process.env.PG_SSL === 'true' ? { rejectUnauthorized: false } : false,
+});
 
 // ══════════════════════════════════════════════
 // CONFIG — Allowed users and OAuth credentials
@@ -272,6 +288,91 @@ app.post('/api/dre-lookup', requireAuth, async (req, res) => {
   }
 });
 
+// ══════════════════════════════════════════════
+// REPORT API ROUTES
+// Source: PostgreSQL mpower.cae schema
+// ══════════════════════════════════════════════
+
+// Pipeline summary — open escrows by phase
+// Source: cae.gold_vw_escrow_complete
+// Columns used: Bin Phase, Consideration
+app.get('/api/reports/pipeline-summary', requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT "Bin Phase" as phase, COUNT(*) as count,
+        COALESCE(SUM("Consideration"), 0) as total_value
+      FROM cae.gold_vw_escrow_complete
+      WHERE "Bin Phase" IN ('Opening', 'Processing', 'Funding', 'Closing')
+      GROUP BY "Bin Phase"
+      ORDER BY CASE "Bin Phase"
+        WHEN 'Opening' THEN 1 WHEN 'Processing' THEN 2
+        WHEN 'Funding' THEN 3 WHEN 'Closing' THEN 4 END
+    `);
+    const total = result.rows.reduce((acc, r) => ({
+      count: acc.count + parseInt(r.count),
+      value: acc.value + parseFloat(r.total_value)
+    }), { count: 0, value: 0 });
+    res.json({ phases: result.rows, total });
+  } catch (err) {
+    console.error('Pipeline summary error:', err.message);
+    res.status(500).json({ error: 'Data unavailable', detail: err.message });
+  }
+});
+
+// Open escrows — detailed table
+// Source: cae.gold_vw_escrow_complete
+// Columns used: Escrow Number, Open Date, Bin Phase, Property Address, Escrow Officer,
+//   Listing Agent 1, Selling Agent 1, Consideration, Tasks Completed, Tasks Total, Number of Days
+app.get('/api/reports/open-escrows', requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT "Escrow Number" as escrow_number,
+        "Open Date"::text as open_date,
+        "Bin Phase" as phase,
+        "Property Address" as address,
+        "Escrow Officer" as officer,
+        "Listing Agent 1" as listing_agent,
+        "Selling Agent 1" as selling_agent,
+        "Consideration" as consideration,
+        "Tasks Completed" as tasks_done,
+        "Tasks Total" as tasks_total,
+        "Number of Days" as days_open
+      FROM cae.gold_vw_escrow_complete
+      WHERE "Bin Phase" IN ('Opening', 'Processing', 'Funding', 'Closing')
+      ORDER BY "Open Date" DESC
+    `);
+    res.json({ escrows: result.rows, count: result.rowCount });
+  } catch (err) {
+    console.error('Open escrows error:', err.message);
+    res.status(500).json({ error: 'Data unavailable', detail: err.message });
+  }
+});
+
+// Officer workload — escrows per officer
+// Source: cae.gold_vw_escrow_complete
+// Columns used: Escrow Officer, Bin Phase, Consideration
+app.get('/api/reports/officer-workload', requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT "Escrow Officer" as officer,
+        COUNT(*) as count,
+        COALESCE(SUM("Consideration"), 0) as total_value,
+        SUM(CASE WHEN "Bin Phase" = 'Opening' THEN 1 ELSE 0 END) as opening,
+        SUM(CASE WHEN "Bin Phase" = 'Processing' THEN 1 ELSE 0 END) as processing,
+        SUM(CASE WHEN "Bin Phase" = 'Funding' THEN 1 ELSE 0 END) as funding,
+        SUM(CASE WHEN "Bin Phase" = 'Closing' THEN 1 ELSE 0 END) as closing
+      FROM cae.gold_vw_escrow_complete
+      WHERE "Bin Phase" IN ('Opening', 'Processing', 'Funding', 'Closing')
+      GROUP BY "Escrow Officer"
+      ORDER BY COUNT(*) DESC
+    `);
+    res.json({ officers: result.rows });
+  } catch (err) {
+    console.error('Officer workload error:', err.message);
+    res.status(500).json({ error: 'Data unavailable', detail: err.message });
+  }
+});
+
 // Protected pages
 app.get('/', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -279,6 +380,10 @@ app.get('/', requireAuth, (req, res) => {
 
 app.get('/dre-lookup', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'dre-lookup.html'));
+});
+
+app.get('/reports', requireAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'reports.html'));
 });
 
 // ══════════════════════════════════════════════

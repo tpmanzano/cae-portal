@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Morning Reports — California Advantage Escrow</title>
+  <link rel="stylesheet" href="/css/mpower.css?v=4" />
+  <style>
+    .metric-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--space-lg); margin-bottom: var(--space-xl); }
+    .metric-box { background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--space-lg); text-align: center; }
+    .metric-value { font-size: 32px; font-weight: 700; color: var(--accent); }
+    .metric-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+    .metric-sub { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .data-table th { text-align: left; padding: 10px 12px; border-bottom: 2px solid var(--border); color: var(--text-muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; user-select: none; }
+    .data-table th:hover { color: var(--accent); }
+    .data-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--text-primary); }
+    .data-table tr:hover td { background: var(--surface-hover); }
+    .data-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+    .phase-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+    .phase-opening { background: #dbeafe; color: #1e40af; }
+    .phase-processing { background: #fef3c7; color: #92400e; }
+    .phase-funding { background: #d1fae5; color: #065f46; }
+    .phase-closing { background: #ede9fe; color: #5b21b6; }
+
+    [data-theme="dark"] .phase-opening { background: #1e3a5f; color: #93c5fd; }
+    [data-theme="dark"] .phase-processing { background: #4a3500; color: #fcd34d; }
+    [data-theme="dark"] .phase-funding { background: #064e3b; color: #6ee7b7; }
+    [data-theme="dark"] .phase-closing { background: #3b1f6e; color: #c4b5fd; }
+
+    .task-bar { display: inline-flex; align-items: center; gap: 6px; }
+    .task-bar-track { width: 60px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .task-bar-fill { height: 100%; border-radius: 3px; background: var(--accent); }
+    .task-bar-text { font-size: 11px; color: var(--text-muted); }
+
+    .officer-row { display: flex; align-items: center; gap: var(--space-md); padding: var(--space-md) 0; border-bottom: 1px solid var(--border); }
+    .officer-row:last-child { border-bottom: none; }
+    .officer-name { font-weight: 600; min-width: 150px; }
+    .officer-count { font-size: 24px; font-weight: 700; color: var(--accent); min-width: 40px; text-align: center; }
+    .officer-phases { display: flex; gap: 8px; flex-wrap: wrap; }
+    .officer-value { font-size: 13px; color: var(--text-muted); margin-left: auto; }
+
+    .filter-bar { display: flex; gap: 8px; margin-bottom: var(--space-lg); flex-wrap: wrap; }
+    .filter-btn { padding: 6px 14px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-card); color: var(--text-primary); cursor: pointer; font-size: 12px; font-weight: 500; }
+    .filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+    .loading { text-align: center; padding: 40px; color: var(--text-muted); }
+    .error { text-align: center; padding: 40px; color: #c53030; }
+    .last-updated { font-size: 11px; color: var(--text-muted); margin-top: var(--space-sm); }
+  </style>
+</head>
+<body>
+
+  <div class="grid-bg"></div>
+
+  <nav class="topnav">
+    <div class="topnav-left">
+      <button class="collapse-btn" onclick="toggleSidebar()" title="Toggle sidebar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+      </button>
+      <a href="/" class="topnav-brand">
+        <span style="font-weight: 700;">California Advantage Escrow</span>
+      </a>
+    </div>
+    <div class="topnav-center">
+      <a href="/" class="topnav-link">CAE</a>
+      <a href="/reports" class="topnav-link active">Reports</a>
+      <a href="#" class="topnav-link">Data</a>
+    </div>
+    <div class="topnav-right">
+      <span class="topnav-env">California Advantage Escrow</span>
+      <div class="account-menu">
+        <button class="account-btn" onclick="toggleAccountMenu()" id="account-btn">
+          <div class="account-avatar" id="account-avatar" style="color: white; display: flex; align-items: center; justify-content: center;">T</div>
+        </button>
+        <div class="account-dropdown" id="account-dropdown">
+          <div class="account-info" id="account-info">
+            <div class="account-name" id="account-name">User</div>
+            <div class="account-email" id="account-email">email</div>
+          </div>
+          <div class="account-divider"></div>
+          <button class="account-option" onclick="toggleTheme()">
+            <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            <span>Toggle Theme</span>
+          </button>
+          <a href="/auth/logout" class="account-option">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span>Sign Out</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-label">Tools</div>
+          <a href="/" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            <span>Dashboard</span>
+          </a>
+          <a href="/dre-lookup" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <span>DRE Lookup</span>
+          </a>
+          <a href="/reports" class="nav-item active">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span>Reports</span>
+          </a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-label">Data</div>
+          <a href="#" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            <span>Databases</span>
+          </a>
+          <a href="#" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            <span>Pipeline</span>
+          </a>
+          <a href="#" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+            <span>Metrics</span>
+          </a>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <p>Powered by <span class="brand">mPowerAnalytics</span></p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="content">
+        <h1 class="page-title">Morning Reports</h1>
+        <p class="page-subtitle">Escrow pipeline from PostgreSQL — live data from RBJ</p>
+
+        <!-- Pipeline Summary -->
+        <div id="pipeline-section">
+          <div class="loading">Loading pipeline data...</div>
+        </div>
+
+        <!-- Officer Workload -->
+        <div id="officer-section" style="margin-top: var(--space-xl);">
+          <div class="loading">Loading officer workload...</div>
+        </div>
+
+        <!-- Open Escrows Table -->
+        <div id="escrows-section" style="margin-top: var(--space-xl);">
+          <div class="loading">Loading open escrows...</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    let allEscrows = [];
+    let currentFilter = 'all';
+    let sortCol = null;
+    let sortAsc = true;
+
+    // Load all data on page load
+    Promise.all([
+      fetch('/api/reports/pipeline-summary').then(r => r.json()),
+      fetch('/api/reports/officer-workload').then(r => r.json()),
+      fetch('/api/reports/open-escrows').then(r => r.json()),
+    ]).then(([pipeline, officers, escrows]) => {
+      renderPipeline(pipeline);
+      renderOfficers(officers);
+      allEscrows = escrows.escrows;
+      renderEscrows(allEscrows);
+    }).catch(err => {
+      document.querySelectorAll('.loading').forEach(el => {
+        el.className = 'error';
+        el.textContent = 'Failed to load data: ' + err.message;
+      });
+    });
+
+    function fmt(n) {
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
+    }
+
+    function renderPipeline(data) {
+      const el = document.getElementById('pipeline-section');
+      const phases = data.phases;
+      const total = data.total;
+      el.innerHTML = `
+        <div class="card">
+          <div class="card-title">Pipeline Overview</div>
+          <div class="card-subtitle">Open escrows across all phases</div>
+          <div class="metric-grid">
+            ${phases.map(p => `
+              <div class="metric-box">
+                <div class="metric-value">${parseInt(p.count)}</div>
+                <div class="metric-label">${p.phase}</div>
+                <div class="metric-sub">${fmt(p.total_value)}</div>
+              </div>
+            `).join('')}
+            <div class="metric-box" style="border-color: var(--accent);">
+              <div class="metric-value">${total.count}</div>
+              <div class="metric-label">Total Open</div>
+              <div class="metric-sub">${fmt(total.value)}</div>
+            </div>
+          </div>
+          <div class="last-updated">Data as of last RBJ extraction</div>
+        </div>
+      `;
+    }
+
+    function renderOfficers(data) {
+      const el = document.getElementById('officer-section');
+      el.innerHTML = `
+        <div class="card">
+          <div class="card-title">Officer Workload</div>
+          <div class="card-subtitle">Active escrows by escrow officer</div>
+          ${data.officers.map(o => `
+            <div class="officer-row">
+              <div class="officer-count">${parseInt(o.count)}</div>
+              <div class="officer-name">${o.officer || 'Unassigned'}</div>
+              <div class="officer-phases">
+                ${parseInt(o.opening) > 0 ? `<span class="phase-badge phase-opening">${o.opening} Opening</span>` : ''}
+                ${parseInt(o.processing) > 0 ? `<span class="phase-badge phase-processing">${o.processing} Processing</span>` : ''}
+                ${parseInt(o.funding) > 0 ? `<span class="phase-badge phase-funding">${o.funding} Funding</span>` : ''}
+                ${parseInt(o.closing) > 0 ? `<span class="phase-badge phase-closing">${o.closing} Closing</span>` : ''}
+              </div>
+              <div class="officer-value">${fmt(o.total_value)}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function renderEscrows(escrows) {
+      const filtered = currentFilter === 'all' ? escrows : escrows.filter(e => e.phase === currentFilter);
+      const sorted = sortCol ? [...filtered].sort((a, b) => {
+        let va = a[sortCol], vb = b[sortCol];
+        if (sortCol === 'consideration' || sortCol === 'days_open') { va = parseFloat(va) || 0; vb = parseFloat(vb) || 0; }
+        if (va < vb) return sortAsc ? -1 : 1;
+        if (va > vb) return sortAsc ? 1 : -1;
+        return 0;
+      }) : filtered;
+
+      const el = document.getElementById('escrows-section');
+      el.innerHTML = `
+        <div class="card">
+          <div class="card-title">Open Escrows (${filtered.length})</div>
+          <div class="card-subtitle">All active escrow files</div>
+          <div class="filter-bar">
+            <button class="filter-btn ${currentFilter === 'all' ? 'active' : ''}" onclick="setFilter('all')">All (${escrows.length})</button>
+            <button class="filter-btn ${currentFilter === 'Opening' ? 'active' : ''}" onclick="setFilter('Opening')">Opening</button>
+            <button class="filter-btn ${currentFilter === 'Processing' ? 'active' : ''}" onclick="setFilter('Processing')">Processing</button>
+            <button class="filter-btn ${currentFilter === 'Funding' ? 'active' : ''}" onclick="setFilter('Funding')">Funding</button>
+            <button class="filter-btn ${currentFilter === 'Closing' ? 'active' : ''}" onclick="setFilter('Closing')">Closing</button>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th onclick="sortBy('escrow_number')">Escrow #</th>
+                  <th onclick="sortBy('open_date')">Opened</th>
+                  <th onclick="sortBy('phase')">Phase</th>
+                  <th onclick="sortBy('days_open')">Days</th>
+                  <th onclick="sortBy('address')">Property</th>
+                  <th onclick="sortBy('officer')">Officer</th>
+                  <th onclick="sortBy('listing_agent')">Listing Agent</th>
+                  <th onclick="sortBy('selling_agent')">Selling Agent</th>
+                  <th onclick="sortBy('consideration')">Consideration</th>
+                  <th>Tasks</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${sorted.map(e => {
+                  const pct = e.tasks_total > 0 ? Math.round((e.tasks_done / e.tasks_total) * 100) : 0;
+                  const phaseClass = (e.phase || '').toLowerCase();
+                  return `
+                    <tr>
+                      <td><strong>${e.escrow_number || ''}</strong></td>
+                      <td>${e.open_date || ''}</td>
+                      <td><span class="phase-badge phase-${phaseClass}">${e.phase || ''}</span></td>
+                      <td class="num">${e.days_open || ''}</td>
+                      <td>${e.address || ''}</td>
+                      <td>${e.officer || ''}</td>
+                      <td>${e.listing_agent || ''}</td>
+                      <td>${e.selling_agent || ''}</td>
+                      <td class="num">${e.consideration ? fmt(e.consideration) : ''}</td>
+                      <td>
+                        <div class="task-bar">
+                          <div class="task-bar-track"><div class="task-bar-fill" style="width: ${pct}%"></div></div>
+                          <span class="task-bar-text">${e.tasks_done || 0}/${e.tasks_total || 0}</span>
+                        </div>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function setFilter(phase) {
+      currentFilter = phase;
+      renderEscrows(allEscrows);
+    }
+
+    function sortBy(col) {
+      if (sortCol === col) { sortAsc = !sortAsc; }
+      else { sortCol = col; sortAsc = true; }
+      renderEscrows(allEscrows);
+    }
+  </script>
+</body>
+</html>
