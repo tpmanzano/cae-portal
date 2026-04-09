@@ -736,18 +736,4 @@ tr:hover {
   color: var(--text-primary);
 }
 
-/* ── Responsive ── */
-@media (max-width: 768px) {
-  .sidebar {
-    width: var(--sidebar-collapsed);
-  }
-  .sidebar .nav-item span,
-  .sidebar .nav-section-label,
-  .sidebar-logo span,
-  .sidebar-footer p {
-    display: none;
-  }
-  .main {
-    margin-left: var(--sidebar-collapsed);
-  }
-}
+/* ── Responsive — disabled until layout is stable ── */
