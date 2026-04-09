@@ -25,13 +25,18 @@ const magicTokens = new Map();
 // SESSION
 // ══════════════════════════════════════════════
 
+// Trust Render's proxy so secure cookies work behind HTTPS termination
+app.set('trust proxy', 1);
+
 app.use(session({
   secret: process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex'),
   resave: false,
   saveUninitialized: false,
+  proxy: true,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
+    sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   }
 }));
