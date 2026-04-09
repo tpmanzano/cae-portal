@@ -397,6 +397,28 @@ app.get('/reports', requireAuth, (req, res) => {
 });
 
 // ══════════════════════════════════════════════
+// OFFICER PAGES — restricted per officer
+// ══════════════════════════════════════════════
+
+const OFFICER_ACCESS = {
+  erin: ['erin@caescrow.net', 'tpmanzano@gmail.com', 'tom@mpoweranalytics.com'],
+};
+
+function requireOfficerAccess(officer) {
+  return (req, res, next) => {
+    if (!req.isAuthenticated()) return res.redirect('/login');
+    const email = (req.user.email || '').toLowerCase();
+    const allowed = OFFICER_ACCESS[officer] || [];
+    if (allowed.includes(email)) return next();
+    res.status(403).send('Access restricted');
+  };
+}
+
+app.get('/officers/erin', requireOfficerAccess('erin'), (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'officers', 'erin.html'));
+});
+
+// ══════════════════════════════════════════════
 // AMY'S CORNER — restricted access
 // ══════════════════════════════════════════════
 

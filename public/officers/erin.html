@@ -3,24 +3,15 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Amy's Corner — California Advantage Escrow</title>
+  <title>Erin Ferrell — California Advantage Escrow</title>
   <link rel="stylesheet" href="/css/mpower.css?v=5" />
   <style>
     .item-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-lg); }
-    .item-card { background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--space-lg); transition: border-color 0.2s; }
-    .item-card:hover { border-color: var(--accent); }
+    .item-card { background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--space-lg); }
     .item-card-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
-    .item-card-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5; }
-    .item-card-date { font-size: 11px; color: var(--text-muted); }
-    .item-card-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; margin-bottom: 8px; }
-    .badge-report { background: #dbeafe; color: #1e40af; }
-    .badge-document { background: #d1fae5; color: #065f46; }
-    .badge-link { background: #fef3c7; color: #92400e; }
-    [data-theme="dark"] .badge-report { background: #1e3a5f; color: #93c5fd; }
-    [data-theme="dark"] .badge-document { background: #064e3b; color: #6ee7b7; }
-    [data-theme="dark"] .badge-link { background: #4a3500; color: #fcd34d; }
-    .section-title { font-size: 18px; font-weight: 600; margin-bottom: var(--space-md); margin-top: var(--space-xl); }
-    .section-title:first-of-type { margin-top: 0; }
+    .item-card-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+    .item-card-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; margin-bottom: 8px; background: #dbeafe; color: #1e40af; }
+    [data-theme="dark"] .item-card-badge { background: #1e3a5f; color: #93c5fd; }
   </style>
 </head>
 <body>
@@ -39,13 +30,13 @@
     <div class="topnav-center">
       <a href="/" class="topnav-link">CAE</a>
       <a href="/reports" class="topnav-link">Reports</a>
-      <a href="/amy" class="topnav-link active">Amy's Corner</a>
+      <a href="#" class="topnav-link">Data</a>
     </div>
     <div class="topnav-right">
       <span class="topnav-env">California Advantage Escrow</span>
       <div class="account-menu">
         <button class="account-btn" onclick="toggleAccountMenu()" id="account-btn">
-          <div class="account-avatar" id="account-avatar" style="color: white; display: flex; align-items: center; justify-content: center;">A</div>
+          <div class="account-avatar" id="account-avatar" style="color: white; display: flex; align-items: center; justify-content: center;">E</div>
         </button>
         <div class="account-dropdown" id="account-dropdown">
           <div class="account-info" id="account-info">
@@ -81,7 +72,7 @@
             <svg class="nav-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             <span>Reports</span>
           </a>
-          <a href="/officers/erin" class="nav-item">
+          <a href="/officers/erin" class="nav-item active">
             <svg class="nav-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             <span>Erin Ferrell</span>
           </a>
@@ -97,7 +88,7 @@
 
         <div class="nav-section">
           <div class="nav-section-label">Management</div>
-          <a href="/amy" class="nav-item active">
+          <a href="/amy" class="nav-item">
             <svg class="nav-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             <span>Amy's Corner</span>
           </a>
@@ -110,59 +101,30 @@
 
     <main class="main">
       <div class="content">
-        <h1 class="page-title">Amy's Corner</h1>
-        <p class="page-subtitle">Reports, documents, and updates curated for you</p>
+        <h1 class="page-title">Erin Ferrell</h1>
+        <p class="page-subtitle">Escrow officer reports and tools</p>
 
-        <div class="section-title">Reports</div>
         <div class="item-grid">
           <a href="/reports" class="item-card" style="text-decoration: none; color: inherit;">
-            <span class="item-card-badge badge-report">Report</span>
-            <div class="item-card-title">Escrow Pipeline Overview</div>
-            <div class="item-card-desc">Live pipeline — open escrows by phase, officer workload, task progress. Updated daily from RBJ.</div>
-            <div class="item-card-date">Live data</div>
+            <span class="item-card-badge">Report</span>
+            <div class="item-card-title">Pipeline Overview</div>
+            <div class="item-card-desc">Current escrow pipeline — all phases, task progress, workload.</div>
           </a>
-          <a href="/reports?view=opening" class="item-card" style="text-decoration: none; color: inherit;">
-            <span class="item-card-badge badge-report">Report</span>
-            <div class="item-card-title">New Openings</div>
-            <div class="item-card-desc">Recently opened escrows — what's coming in the door.</div>
-            <div class="item-card-date">Live data</div>
+          <a href="/reports?view=processing" class="item-card" style="text-decoration: none; color: inherit;">
+            <span class="item-card-badge">Report</span>
+            <div class="item-card-title">Processing</div>
+            <div class="item-card-desc">Escrows in processing — active work items.</div>
           </a>
           <a href="/reports?view=funding" class="item-card" style="text-decoration: none; color: inherit;">
-            <span class="item-card-badge badge-report">Report</span>
-            <div class="item-card-title">Funding Pipeline</div>
-            <div class="item-card-desc">Escrows in funding — revenue about to land.</div>
-            <div class="item-card-date">Live data</div>
+            <span class="item-card-badge">Report</span>
+            <div class="item-card-title">Funding</div>
+            <div class="item-card-desc">Escrows in funding — approaching close.</div>
           </a>
-        </div>
-
-        <div class="section-title">Documents</div>
-        <div class="item-grid">
-          <div class="item-card">
-            <span class="item-card-badge badge-document">Document</span>
-            <div class="item-card-title">NHE Financial Analysis</div>
-            <div class="item-card-desc">Newhall Escrow compiled financials — Q4 and full year analysis.</div>
-            <div class="item-card-date">Updated April 2026</div>
-          </div>
-          <div class="item-card">
-            <span class="item-card-badge badge-document">Document</span>
-            <div class="item-card-title">CAE Owner MTD Summary</div>
-            <div class="item-card-desc">Month-to-date owner summary — fees, volume, pipeline value.</div>
-            <div class="item-card-date">Updated daily</div>
-          </div>
-        </div>
-
-        <div class="section-title">Quick Links</div>
-        <div class="item-grid">
-          <div class="item-card">
-            <span class="item-card-badge badge-link">Link</span>
-            <div class="item-card-title">Google Drive — Shared Documents</div>
-            <div class="item-card-desc">Shared folder for financial documents, reports, and analysis.</div>
-          </div>
-          <div class="item-card">
-            <span class="item-card-badge badge-link">Link</span>
+          <a href="/dre-lookup" class="item-card" style="text-decoration: none; color: inherit;">
+            <span class="item-card-badge">Tool</span>
             <div class="item-card-title">DRE License Lookup</div>
-            <div class="item-card-desc">Verify agent and broker licenses with the California DRE.</div>
-          </div>
+            <div class="item-card-desc">Verify agent and broker licenses.</div>
+          </a>
         </div>
       </div>
     </main>
