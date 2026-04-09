@@ -295,12 +295,12 @@ app.post('/api/dre-lookup', requireAuth, async (req, res) => {
 
 // Pipeline summary — open escrows by phase
 // Source: cae.gold_vw_escrow_complete
-// Columns used: Bin Phase, Consideration
+// Columns used: Bin Phase, Fees Total
 app.get('/api/reports/pipeline-summary', requireAuth, async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT "Bin Phase" as phase, COUNT(*) as count,
-        COALESCE(SUM("Consideration"), 0) as total_value
+        COALESCE(SUM("Fees Total"), 0) as total_value
       FROM cae.gold_vw_escrow_complete
       WHERE "Bin Phase" IN ('Opening', 'Processing', 'Funding', 'Closing')
       GROUP BY "Bin Phase"
@@ -322,7 +322,7 @@ app.get('/api/reports/pipeline-summary', requireAuth, async (req, res) => {
 // Open escrows — detailed table
 // Source: cae.gold_vw_escrow_complete
 // Columns used: Escrow Number, Open Date, Bin Phase, Property Address, Escrow Officer,
-//   Listing Agent 1, Selling Agent 1, Consideration, Tasks Completed, Tasks Total, Number of Days
+//   Listing Agent 1, Selling Agent 1, Fees Total, Tasks Completed, Tasks Total, Number of Days
 app.get('/api/reports/open-escrows', requireAuth, async (req, res) => {
   try {
     const result = await pool.query(`
@@ -333,7 +333,7 @@ app.get('/api/reports/open-escrows', requireAuth, async (req, res) => {
         "Escrow Officer" as officer,
         "Listing Agent 1" as listing_agent,
         "Selling Agent 1" as selling_agent,
-        "Consideration" as consideration,
+        "Fees Total" as fees_total,
         "Tasks Completed" as tasks_done,
         "Tasks Total" as tasks_total,
         "Number of Days" as days_open
@@ -350,13 +350,13 @@ app.get('/api/reports/open-escrows', requireAuth, async (req, res) => {
 
 // Officer workload — escrows per officer
 // Source: cae.gold_vw_escrow_complete
-// Columns used: Escrow Officer, Bin Phase, Consideration
+// Columns used: Escrow Officer, Bin Phase, Fees Total
 app.get('/api/reports/officer-workload', requireAuth, async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT "Escrow Officer" as officer,
         COUNT(*) as count,
-        COALESCE(SUM("Consideration"), 0) as total_value,
+        COALESCE(SUM("Fees Total"), 0) as total_value,
         SUM(CASE WHEN "Bin Phase" = 'Opening' THEN 1 ELSE 0 END) as opening,
         SUM(CASE WHEN "Bin Phase" = 'Processing' THEN 1 ELSE 0 END) as processing,
         SUM(CASE WHEN "Bin Phase" = 'Funding' THEN 1 ELSE 0 END) as funding,

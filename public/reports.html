@@ -323,7 +323,7 @@
                   <th onclick="sortBy('officer')">Officer</th>
                   <th onclick="sortBy('listing_agent')">Listing Agent</th>
                   <th onclick="sortBy('selling_agent')">Selling Agent</th>
-                  <th onclick="sortBy('consideration')">Consideration</th>
+                  <th onclick="sortBy('fees_total')">Fees Total</th>
                   <th>Tasks</th>
                 </tr>
               </thead>
@@ -341,7 +341,7 @@
                       <td>${e.officer || ''}</td>
                       <td>${e.listing_agent || ''}</td>
                       <td>${e.selling_agent || ''}</td>
-                      <td class="num">${e.consideration ? fmt(e.consideration) : ''}</td>
+                      <td class="num">${e.fees_total ? fmt(e.fees_total) : ''}</td>
                       <td>
                         <div class="task-bar">
                           <div class="task-bar-track"><div class="task-bar-fill" style="width: ${pct}%"></div></div>
