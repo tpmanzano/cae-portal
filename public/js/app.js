@@ -1,12 +1,25 @@
-// Sidebar toggle
+// ── Theme Toggle ──
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || 'light';
+  const next = current === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('mpower-theme', next);
+}
+
+// ── Sidebar Toggle ──
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
   sidebar.classList.toggle('collapsed');
   localStorage.setItem('sidebar-collapsed', sidebar.classList.contains('collapsed'));
 }
 
-// Restore sidebar state
+// ── Restore State ──
 document.addEventListener('DOMContentLoaded', () => {
+  // Theme
+  const savedTheme = localStorage.getItem('mpower-theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+
+  // Sidebar
   const collapsed = localStorage.getItem('sidebar-collapsed') === 'true';
   if (collapsed) {
     document.getElementById('sidebar').classList.add('collapsed');
