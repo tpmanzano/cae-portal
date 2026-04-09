@@ -77,14 +77,15 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL: `${BASE_URL}/auth/google/callback`
   }, (accessToken, refreshToken, profile, done) => {
-    const email = profile.emails?.[0]?.value;
+    const email = profile.emails?.[0]?.value || profile._json?.email;
+    console.log('[Google Auth]', JSON.stringify({ id: profile.id, email, name: profile.displayName, emailsRaw: profile.emails }));
     if (!isAllowed(email)) {
       return done(null, false, { message: 'Access denied' });
     }
     done(null, {
       id: profile.id,
-      email,
-      name: profile.displayName,
+      email: email || 'unknown',
+      name: profile.displayName || 'User',
       photo: profile.photos?.[0]?.value,
       provider: 'google'
     });

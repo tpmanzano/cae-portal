@@ -41,7 +41,7 @@ document.addEventListener('click', (e) => {
 // Load user info
 document.addEventListener('DOMContentLoaded', async () => {
   try {
-    const res = await fetch('/api/me');
+    const res = await fetch('/api/me', { credentials: 'same-origin' });
     if (res.ok) {
       const user = await res.json();
       const nameEl = document.getElementById('account-name');
