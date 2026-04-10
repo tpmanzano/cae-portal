@@ -18,9 +18,16 @@
     [data-theme="dark"] .badge-dev { background: #4a3500; color: #fcd34d; }
     [data-theme="dark"] .badge-ready { background: #064e3b; color: #6ee7b7; }
     [data-theme="dark"] .badge-idea { background: #3b1f6e; color: #c4b5fd; }
-    .section-title { font-size: 18px; font-weight: 600; margin-bottom: var(--space-md); margin-top: var(--space-xl); }
+    .section-title { font-size: 18px; font-weight: 600; margin-bottom: var(--space-md); margin-top: var(--space-xl); cursor: pointer; display: flex; align-items: center; gap: 8px; user-select: none; }
     .section-title:first-of-type { margin-top: 0; }
+    .section-title:hover { color: var(--accent); }
+    .section-chevron { transition: transform 0.2s; font-size: 12px; }
+    .section-chevron.collapsed { transform: rotate(-90deg); }
+    .section-content { transition: max-height 0.3s ease; overflow: hidden; }
+    .section-content.collapsed { max-height: 0 !important; margin: 0; }
     .admin-note { font-size: 12px; color: var(--text-muted); margin-bottom: var(--space-xl); padding: var(--space-md); background: var(--surface-card); border: 1px dashed var(--border); border-radius: var(--radius); }
+    .collapse-controls { display: flex; gap: 8px; margin-bottom: var(--space-lg); }
+    .collapse-btn-admin { padding: 4px 12px; font-size: 11px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-card); color: var(--text-muted); cursor: pointer; }
   </style>
 </head>
 <body>
@@ -118,7 +125,13 @@
 
         <div class="admin-note">Only visible to you. Build reports and features here, then move links to Amy's Corner or officer pages when ready to reveal.</div>
 
-        <div class="section-title">In Development</div>
+        <div class="collapse-controls">
+          <button class="collapse-btn-admin" onclick="expandAllSections()">Expand All</button>
+          <button class="collapse-btn-admin" onclick="collapseAllSections()">Collapse All</button>
+        </div>
+
+        <div class="section-title" onclick="toggleSection('sec-dev')"><span class="section-chevron" id="chev-sec-dev">&#9660;</span> In Development</div>
+        <div class="section-content" id="sec-dev">
         <div class="item-grid">
           <div class="item-card">
             <span class="item-card-badge badge-dev">Building</span>
@@ -137,7 +150,10 @@
           </div>
         </div>
 
-        <div class="section-title">Ready to Deploy</div>
+        </div>
+
+        <div class="section-title" onclick="toggleSection('sec-ready')"><span class="section-chevron" id="chev-sec-ready">&#9660;</span> Ready to Deploy</div>
+        <div class="section-content" id="sec-ready">
         <div class="item-grid">
           <a href="/reports" class="item-card">
             <span class="item-card-badge badge-ready">Live</span>
@@ -146,7 +162,10 @@
           </a>
         </div>
 
-        <div class="section-title">Report Registry</div>
+        </div>
+
+        <div class="section-title" onclick="toggleSection('sec-registry')"><span class="section-chevron" id="chev-sec-registry">&#9660;</span> Report Registry</div>
+        <div class="section-content" id="sec-registry">
         <div class="card" style="overflow-x: auto;">
           <div class="card-title">All Reports — Filters & Deployment</div>
           <div class="card-subtitle">Where each report lives, what view it queries, what filters are applied</div>
@@ -195,7 +214,10 @@
           }
         </script>
 
-        <div class="section-title">Google Drive — Distributed Documents</div>
+        </div>
+
+        <div class="section-title" onclick="toggleSection('sec-drive')"><span class="section-chevron" id="chev-sec-drive">&#9660;</span> Google Drive — Distributed Documents</div>
+        <div class="section-content" id="sec-drive">
         <div class="card" style="overflow-x: auto;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
@@ -238,7 +260,10 @@
           }
         </script>
 
-        <div class="section-title">Database — View Inventory</div>
+        </div>
+
+        <div class="section-title" onclick="toggleSection('sec-db')"><span class="section-chevron" id="chev-sec-db">&#9660;</span> Database — View Inventory</div>
+        <div class="section-content" id="sec-db">
         <div class="card" style="overflow-x: auto;">
           <div class="card-title">PostgreSQL Views (cae schema)</div>
           <div class="card-subtitle">Live from database — refreshes on page load</div>
@@ -275,7 +300,10 @@
             });
         </script>
 
-        <div class="section-title">Infrastructure</div>
+        </div>
+
+        <div class="section-title" onclick="toggleSection('sec-infra')"><span class="section-chevron" id="chev-sec-infra">&#9660;</span> Infrastructure</div>
+        <div class="section-content" id="sec-infra">
         <div class="card" style="overflow-x: auto;">
           <div class="card-title">Railway Constraints</div>
           <div class="card-subtitle">Hobby plan — cae-portal + mpower-db</div>
@@ -302,10 +330,48 @@
             </tbody>
           </table>
         </div>
+        </div>
       </div>
     </main>
   </div>
 
   <script src="/js/app.js"></script>
+  <script>
+    function toggleSection(id) {
+      var el = document.getElementById(id);
+      var chev = document.getElementById('chev-' + id);
+      el.classList.toggle('collapsed');
+      chev.classList.toggle('collapsed');
+      if (!el.classList.contains('collapsed')) {
+        el.style.maxHeight = el.scrollHeight + 'px';
+      }
+    }
+
+    function collapseAllSections() {
+      document.querySelectorAll('.section-content').forEach(function(el) {
+        el.classList.add('collapsed');
+      });
+      document.querySelectorAll('.section-chevron').forEach(function(el) {
+        el.classList.add('collapsed');
+      });
+    }
+
+    function expandAllSections() {
+      document.querySelectorAll('.section-content').forEach(function(el) {
+        el.classList.remove('collapsed');
+        el.style.maxHeight = el.scrollHeight + 'px';
+      });
+      document.querySelectorAll('.section-chevron').forEach(function(el) {
+        el.classList.remove('collapsed');
+      });
+    }
+
+    // Initialize max-height for all sections
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.section-content').forEach(function(el) {
+        el.style.maxHeight = el.scrollHeight + 'px';
+      });
+    });
+  </script>
 </body>
 </html>
