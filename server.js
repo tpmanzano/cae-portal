@@ -344,6 +344,7 @@ app.get('/api/reports/open-escrows', requireAuth, async (req, res) => {
         "Bin Phase" as phase,
         "Property Address" as address,
         "Escrow Officer" as officer,
+        "Assigned To" as assigned_to,
         "Listing Agent 1" as listing_agent,
         "Selling Agent 1" as selling_agent,
         "Fees Total" as fees_total,

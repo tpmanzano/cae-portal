@@ -192,6 +192,7 @@
   <script>
     let allEscrows = [];
     let currentFilter = 'all';
+    let currentAssignedTo = 'all';
     let sortCol = null;
     let sortAsc = true;
 
@@ -342,27 +343,42 @@
     }
 
     function renderEscrows(escrows) {
-      const filtered = currentFilter === 'all' ? escrows : escrows.filter(e => e.phase === currentFilter);
+      let filtered = currentFilter === 'all' ? escrows : escrows.filter(e => e.phase === currentFilter);
+      if (currentAssignedTo !== 'all') {
+        filtered = filtered.filter(e => (e.assigned_to || '') === currentAssignedTo);
+      }
       const sorted = sortCol ? [...filtered].sort((a, b) => {
         let va = a[sortCol], vb = b[sortCol];
-        if (sortCol === 'consideration' || sortCol === 'days_open') { va = parseFloat(va) || 0; vb = parseFloat(vb) || 0; }
+        if (sortCol === 'fees_total' || sortCol === 'days_open') { va = parseFloat(va) || 0; vb = parseFloat(vb) || 0; }
         if (va < vb) return sortAsc ? -1 : 1;
         if (va > vb) return sortAsc ? 1 : -1;
         return 0;
       }) : filtered;
+
+      // Build assigned_to slicer options from the phase-filtered data (before assigned_to filter)
+      const phaseFiltered = currentFilter === 'all' ? escrows : escrows.filter(e => e.phase === currentFilter);
+      const assignees = [...new Set(phaseFiltered.map(e => e.assigned_to || '').filter(Boolean))].sort();
 
       const el = document.getElementById('escrows-section');
       el.innerHTML = `
         <div class="card">
           <div class="card-title">Open Escrows (${filtered.length})</div>
           <div class="card-subtitle">All active escrow files</div>
-          ${currentView === 'all' ? `<div class="filter-bar">
-            <button class="filter-btn ${currentFilter === 'all' ? 'active' : ''}" onclick="setFilter('all')">All (${escrows.length})</button>
-            <button class="filter-btn ${currentFilter === 'Opening' ? 'active' : ''}" onclick="setFilter('Opening')">Opening</button>
-            <button class="filter-btn ${currentFilter === 'Processing' ? 'active' : ''}" onclick="setFilter('Processing')">Processing</button>
-            <button class="filter-btn ${currentFilter === 'Funding' ? 'active' : ''}" onclick="setFilter('Funding')">Funding</button>
-            <button class="filter-btn ${currentFilter === 'Closing' ? 'active' : ''}" onclick="setFilter('Closing')">Closing</button>
-          </div>` : ''}
+          <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: var(--space-md);">
+            ${currentView === 'all' ? `<div class="filter-bar" style="margin-bottom: 0;">
+              <button class="filter-btn ${currentFilter === 'all' ? 'active' : ''}" onclick="setFilter('all')">All (${escrows.length})</button>
+              <button class="filter-btn ${currentFilter === 'Opening' ? 'active' : ''}" onclick="setFilter('Opening')">Opening</button>
+              <button class="filter-btn ${currentFilter === 'Processing' ? 'active' : ''}" onclick="setFilter('Processing')">Processing</button>
+              <button class="filter-btn ${currentFilter === 'Funding' ? 'active' : ''}" onclick="setFilter('Funding')">Funding</button>
+              <button class="filter-btn ${currentFilter === 'Closing' ? 'active' : ''}" onclick="setFilter('Closing')">Closing</button>
+            </div>` : ''}
+            <div style="margin-left: auto;">
+              <select onchange="setAssignedTo(this.value)" style="padding: 6px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-card); color: var(--text-primary); font-size: 12px; cursor: pointer;">
+                <option value="all" ${currentAssignedTo === 'all' ? 'selected' : ''}>All Processors</option>
+                ${assignees.map(a => `<option value="${a}" ${currentAssignedTo === a ? 'selected' : ''}>${a}</option>`).join('')}
+              </select>
+            </div>
+          </div>
           <div style="overflow-x: auto;">
             <table class="data-table">
               <thead>
@@ -372,7 +388,7 @@
                   <th onclick="sortBy('phase')">Phase</th>
                   <th onclick="sortBy('days_open')">Days</th>
                   <th onclick="sortBy('address')">Property</th>
-                  <th onclick="sortBy('officer')">Officer</th>
+                  <th onclick="sortBy('assigned_to')">Assigned To</th>
                   <th onclick="sortBy('listing_agent')">Listing Agent</th>
                   <th onclick="sortBy('selling_agent')">Selling Agent</th>
                   <th onclick="sortBy('fees_total')">Fees Total</th>
@@ -390,7 +406,7 @@
                       <td><span class="phase-badge phase-${phaseClass}">${e.phase || ''}</span></td>
                       <td class="num">${e.days_open || ''}</td>
                       <td>${e.address || ''}</td>
-                      <td>${e.officer || ''}</td>
+                      <td>${e.assigned_to || ''}</td>
                       <td>${e.listing_agent || ''}</td>
                       <td>${e.selling_agent || ''}</td>
                       <td class="num">${e.fees_total ? fmt(e.fees_total) : ''}</td>
@@ -412,6 +428,12 @@
 
     function setFilter(phase) {
       currentFilter = phase;
+      currentAssignedTo = 'all';
+      renderEscrows(allEscrows);
+    }
+
+    function setAssignedTo(value) {
+      currentAssignedTo = value;
       renderEscrows(allEscrows);
     }
 
