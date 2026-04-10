@@ -131,6 +131,9 @@
         <!-- YTD Summary -->
         <div id="summary-section"></div>
 
+        <!-- Team Horizontal Bar Chart -->
+        <div id="team-chart-section" style="margin-top: var(--space-xl);"></div>
+
         <!-- Agent Horizontal Bar Chart -->
         <div id="bar-chart-section" style="margin-top: var(--space-xl);"></div>
 
@@ -222,6 +225,7 @@
       }
 
       renderSummary(agents, periodLabel);
+      renderTeamChart(agents, periodLabel);
       renderBarChart(agents, periodLabel);
       renderDonut(agents, periodLabel);
       renderAgentTable(agents, periodLabel);
@@ -278,6 +282,50 @@
               <div class="metric-label">Top Producer</div>
             </div>
           </div>
+        </div>
+      `;
+    }
+
+    function renderTeamChart(agents, label) {
+      if (agents.length === 0) {
+        document.getElementById('team-chart-section').innerHTML = '';
+        return;
+      }
+      // Aggregate by team
+      const teamMap = {};
+      agents.forEach(function(a) {
+        var team = a.team || 'Unassigned';
+        if (!teamMap[team]) teamMap[team] = { team: team, closed: 0, fees: 0 };
+        teamMap[team].closed += parseInt(a.closed);
+        teamMap[team].fees += parseFloat(a.fees);
+      });
+      const teams = Object.values(teamMap).sort(function(a, b) { return b.fees - a.fees; });
+      const maxFees = Math.max.apply(null, teams.map(function(t) { return t.fees; }));
+      const totalFees = teams.reduce(function(a, t) { return a + t.fees; }, 0);
+
+      document.getElementById('team-chart-section').innerHTML = `
+        <div class="card">
+          <div class="card-title">Fee Income by Team</div>
+          <div class="card-subtitle">${label}</div>
+          <div style="padding: var(--space-md) 0;">
+            ${teams.map(function(t) {
+              var pct = maxFees > 0 ? (t.fees / maxFees * 100) : 0;
+              var share = totalFees > 0 ? (t.fees / totalFees * 100).toFixed(1) : '0.0';
+              return `
+                <div class="h-bar-row">
+                  <div class="h-bar-label">${t.team}</div>
+                  <div class="h-bar-track">
+                    <div class="h-bar-fill" style="width: ${Math.max(pct, 1)}%;">
+                      ${pct > 15 ? '<span class="h-bar-fill-value">' + fmt(t.fees) + '</span>' : ''}
+                    </div>
+                  </div>
+                  ${pct <= 15 ? '<span style="font-size:11px;color:var(--text-muted);min-width:60px;">' + fmt(t.fees) + '</span>' : ''}
+                  <div class="h-bar-count" title="Market share">${share}%</div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: var(--space-sm);">Bar = fee income | Percentage = market share</div>
         </div>
       `;
     }
