@@ -456,6 +456,14 @@ app.get('/api/reports/tasks/:escrowNumber', requireAuth, async (req, res) => {
         "Send By Date"::text as send_by_date,
         "On Letter" as on_letter,
         "Progress Notes" as notes,
+        "Task Category" as category,
+        "Task Party" as party,
+        template_days,
+        template_importance,
+        template_sort_order,
+        template_gate_type,
+        process_stage,
+        item_category,
         CASE WHEN "Comp/Recd Date" IS NOT NULL THEN true ELSE false END as is_completed
       FROM web.task_complete
       WHERE "Escrow Number" = $1

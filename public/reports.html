@@ -179,7 +179,7 @@
       <div class="content">
         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
           <div>
-            <h1 class="page-title" id="page-title">Morning Reports</h1>
+            <h1 class="page-title" id="page-title">Morning Reports <span style="font-size: 11px; padding: 2px 8px; border-radius: 8px; background: #fef3c7; color: #92400e; font-weight: 600; vertical-align: middle;">BETA</span></h1>
             <p class="page-subtitle" id="page-subtitle">Escrow pipeline from PostgreSQL — live data from RBJ</p>
           </div>
           <button onclick="refreshReportData()" style="padding: 8px 16px; font-size: 12px; font-weight: 600; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-card); color: var(--text-primary); cursor: pointer; white-space: nowrap; margin-top: 4px;" title="Clear cache and reload fresh data">Refresh Data</button>
@@ -500,12 +500,13 @@
                 <div class="task-item">
                   <div class="task-icon ${t.is_completed ? 'done' : 'pending'}">${t.is_completed ? '&#10003;' : '&#10007;'}</div>
                   <div style="flex: 1;">
-                    <div class="task-desc">${t.description || ''}</div>
+                    <div class="task-desc">${t.description || ''}${t.template_importance ? ' <span style="font-size:10px;padding:1px 6px;border-radius:8px;background:' + (t.template_importance==='High'?'#fee2e2':t.template_importance==='Medium'?'#fef3c7':'#e2e8f0') + ';color:' + (t.template_importance==='High'?'#991b1b':t.template_importance==='Medium'?'#92400e':'#475569') + ';">' + t.template_importance + '</span>' : ''}${t.item_category ? ' <span style="font-size:10px;color:var(--text-muted);">(' + t.item_category + ')</span>' : ''}</div>
                     <div class="task-dates">
                       ${t.sent_date ? '<span>Sent: ' + t.sent_date + '</span>' : ''}
                       ${t.completed_date ? '<span>Completed: ' + t.completed_date + '</span>' : ''}
                       ${t.due_date ? '<span>Due: ' + t.due_date + '</span>' : ''}
-                      ${t.send_by_date ? '<span>Send By: ' + t.send_by_date + '</span>' : ''}
+                      ${t.template_days ? '<span>Expected: ' + t.template_days + ' days</span>' : ''}
+                      ${t.party ? '<span>Party: ' + t.party + '</span>' : ''}
                     </div>
                   </div>
                 </div>
