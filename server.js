@@ -538,6 +538,40 @@ app.get('/api/reports/recent-closings', requireAuth, async (req, res) => {
   }
 });
 
+// Template assignments — progress item templates
+// Source: web.rbj_template
+app.get('/api/reports/templates', requireAuth, async (req, res) => {
+  try {
+    const templateType = req.query.type || 'Sale';
+    const result = await pool.query(`
+      SELECT progress_item as item,
+        party,
+        days_in_processing as days,
+        importance,
+        sort_order,
+        gate_type
+      FROM web.rbj_template
+      WHERE template_type = $1
+      ORDER BY sort_order
+    `, [templateType]);
+
+    // Get available template types
+    const types = await pool.query(`
+      SELECT DISTINCT template_type FROM web.rbj_template ORDER BY template_type
+    `);
+
+    res.json({
+      items: result.rows,
+      count: result.rowCount,
+      type: templateType,
+      available_types: types.rows.map(r => r.template_type)
+    });
+  } catch (err) {
+    console.error('Template error:', err.message);
+    res.status(500).json({ error: 'Data unavailable', detail: err.message });
+  }
+});
+
 // Task detail for a single escrow
 // Source: web.task_complete (materialized from cae.gold_vw_task_complete)
 app.get('/api/reports/tasks/:escrowNumber', requireAuth, async (req, res) => {
@@ -662,6 +696,10 @@ app.get('/amy', requireExecutive, (req, res) => {
 
 app.get('/production', requireExecutive, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'management.html'));
+});
+
+app.get('/templates', requireManagement, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'templates.html'));
 });
 
 app.get('/owner-production', requireManagement, (req, res) => {

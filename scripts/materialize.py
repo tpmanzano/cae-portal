@@ -36,7 +36,13 @@ MATERIALIZATION_PLAN = [
         'name': 'task_complete',
         'source': 'cae.gold_vw_task_complete',
         'target': 'web.task_complete',
-        'description': 'Full task enrichment — 55 columns, task + escrow data joined',
+        'description': 'Full task enrichment — 63 columns, task + escrow data joined',
+    },
+    {
+        'name': 'rbj_template',
+        'source': 'cae.dim_rbj_template',
+        'target': 'web.rbj_template',
+        'description': 'RBJ progress item templates — assignments, days, importance, sort order',
     },
 ]
 
