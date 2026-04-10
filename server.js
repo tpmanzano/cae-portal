@@ -72,6 +72,17 @@ app.use((req, res, next) => {
   next();
 });
 
+// Local dev bypass — auto-login when no OAuth configured
+// Must be BEFORE any route definitions so all routes see the authenticated user
+if (!process.env.GOOGLE_CLIENT_ID && !process.env.MICROSOFT_CLIENT_ID) {
+  app.use((req, res, next) => {
+    if (!req.isAuthenticated()) {
+      req.login({ id: 'dev', email: 'tpmanzano@gmail.com', name: 'Dev User', provider: 'dev' }, () => {});
+    }
+    next();
+  });
+}
+
 // ══════════════════════════════════════════════
 // PASSPORT SERIALIZATION
 // ══════════════════════════════════════════════
@@ -651,15 +662,7 @@ app.get('/api/admin/google-drive-inventory', requireAdmin, async (req, res) => {
   }
 });
 
-// Local dev bypass — auto-login when no OAuth configured
-if (!process.env.GOOGLE_CLIENT_ID && !process.env.MICROSOFT_CLIENT_ID) {
-  app.use((req, res, next) => {
-    if (!req.isAuthenticated()) {
-      req.login({ id: 'dev', email: 'tpmanzano@gmail.com', name: 'Dev User', provider: 'dev' }, () => {});
-    }
-    next();
-  });
-}
+// Dev bypass removed from here — moved earlier in the file
 
 // Protected pages
 app.get('/', requireAuth, (req, res) => {
