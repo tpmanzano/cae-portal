@@ -434,7 +434,9 @@
 
     function setAssignedTo(value) {
       currentAssignedTo = value;
+      const scrollY = window.scrollY;
       renderEscrows(allEscrows);
+      window.scrollTo(0, scrollY);
     }
 
     function toggleReportSubs(e) {
