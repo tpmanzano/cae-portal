@@ -303,16 +303,19 @@ app.post('/api/dre-lookup', requireAuth, async (req, res) => {
 // Source: PostgreSQL mpower.web schema (materialized from cae gold views)
 // ══════════════════════════════════════════════
 
-// Pipeline summary — open escrows by phase
+// Pipeline summary — active escrows by phase
 // Source: web.escrow_complete (materialized from cae.gold_vw_escrow_complete)
-// Columns used: Bin Phase, Fees Total
+// Filters: Escrow Category=Escrow, Escrow Status=O (Open), Bin Status=Active
+// Matches: ggl_vw_escrow_summary filter logic
 app.get('/api/reports/pipeline-summary', requireAuth, async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT "Bin Phase" as phase, COUNT(*) as count,
         COALESCE(SUM("Fees Total"), 0) as total_value
       FROM web.escrow_complete
-      WHERE "Bin Phase" IN ('Opening', 'Processing', 'Funding', 'Closing')
+      WHERE "Escrow Category" = 'Escrow'
+        AND "Escrow Status" = 'O'
+        AND "Bin Status" = 'Active'
       GROUP BY "Bin Phase"
       ORDER BY CASE "Bin Phase"
         WHEN 'Opening' THEN 1 WHEN 'Processing' THEN 2
@@ -331,8 +334,8 @@ app.get('/api/reports/pipeline-summary', requireAuth, async (req, res) => {
 
 // Open escrows — detailed table
 // Source: web.escrow_complete (materialized from cae.gold_vw_escrow_complete)
-// Columns used: Escrow Number, Open Date, Bin Phase, Property Address, Escrow Officer,
-//   Listing Agent 1, Selling Agent 1, Fees Total, Tasks Completed, Tasks Total, Number of Days
+// Filters: Escrow Category=Escrow, Escrow Status=O (Open), Bin Status=Active
+// Matches: ggl_vw_escrow_summary filter logic
 app.get('/api/reports/open-escrows', requireAuth, async (req, res) => {
   try {
     const result = await pool.query(`
@@ -348,7 +351,9 @@ app.get('/api/reports/open-escrows', requireAuth, async (req, res) => {
         "Tasks Total" as tasks_total,
         "Number of Days" as days_open
       FROM web.escrow_complete
-      WHERE "Bin Phase" IN ('Opening', 'Processing', 'Funding', 'Closing')
+      WHERE "Escrow Category" = 'Escrow'
+        AND "Escrow Status" = 'O'
+        AND "Bin Status" = 'Active'
       ORDER BY "Open Date" DESC
     `);
     res.json({ escrows: result.rows, count: result.rowCount });
@@ -360,7 +365,8 @@ app.get('/api/reports/open-escrows', requireAuth, async (req, res) => {
 
 // Officer workload — escrows per officer
 // Source: web.escrow_complete (materialized from cae.gold_vw_escrow_complete)
-// Columns used: Escrow Officer, Bin Phase, Fees Total
+// Filters: Escrow Category=Escrow, Escrow Status=O (Open), Bin Status=Active
+// Matches: ggl_vw_escrow_summary filter logic
 app.get('/api/reports/officer-workload', requireAuth, async (req, res) => {
   try {
     const result = await pool.query(`
@@ -372,7 +378,9 @@ app.get('/api/reports/officer-workload', requireAuth, async (req, res) => {
         SUM(CASE WHEN "Bin Phase" = 'Funding' THEN 1 ELSE 0 END) as funding,
         SUM(CASE WHEN "Bin Phase" = 'Closing' THEN 1 ELSE 0 END) as closing
       FROM web.escrow_complete
-      WHERE "Bin Phase" IN ('Opening', 'Processing', 'Funding', 'Closing')
+      WHERE "Escrow Category" = 'Escrow'
+        AND "Escrow Status" = 'O'
+        AND "Bin Status" = 'Active'
       GROUP BY "Escrow Officer"
       ORDER BY COUNT(*) DESC
     `);

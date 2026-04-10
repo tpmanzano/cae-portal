@@ -162,13 +162,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr><td>Pipeline Summary</td><td>All Reports</td><td>/api/reports/pipeline-summary</td><td>gold_vw_escrow_complete</td><td>Bin Phase IN (Opening, Processing, Funding, Closing)</td><td>Phase, Count, Fees Total</td></tr>
-              <tr><td>Officer Workload</td><td>All Reports</td><td>/api/reports/officer-workload</td><td>gold_vw_escrow_complete</td><td>Bin Phase IN (Opening, Processing, Funding, Closing)</td><td>Officer, Count, Fees Total, Phase breakdown</td></tr>
-              <tr><td>Open Escrows — All</td><td>All Reports</td><td>/api/reports/open-escrows</td><td>gold_vw_escrow_complete</td><td>Bin Phase IN (Opening, Processing, Funding, Closing)</td><td>Escrow #, Open Date, Phase, Days, Address, Officer, List Agent, Sell Agent, Fees Total, Tasks</td></tr>
-              <tr><td>Open Escrows — Opening</td><td>Opening</td><td>/api/reports/open-escrows</td><td>gold_vw_escrow_complete</td><td>Bin Phase IN (...) + client filter: Opening</td><td>Same as All</td></tr>
-              <tr><td>Open Escrows — Processing</td><td>Processing</td><td>/api/reports/open-escrows</td><td>gold_vw_escrow_complete</td><td>Bin Phase IN (...) + client filter: Processing</td><td>Same as All</td></tr>
-              <tr><td>Open Escrows — Funding</td><td>Funding</td><td>/api/reports/open-escrows</td><td>gold_vw_escrow_complete</td><td>Bin Phase IN (...) + client filter: Funding</td><td>Same as All</td></tr>
-              <tr><td>Open Escrows — Closing</td><td>Closing</td><td>/api/reports/open-escrows</td><td>gold_vw_escrow_complete</td><td>Bin Phase IN (...) + client filter: Closing</td><td>Same as All</td></tr>
+              <tr><td>Pipeline Summary</td><td>All Reports</td><td>/api/reports/pipeline-summary</td><td>web.escrow_complete</td><td>Escrow Category=Escrow, Escrow Status=O, Bin Status=Active</td><td>Phase, Count, Fees Total</td></tr>
+              <tr><td>Officer Workload</td><td>All Reports</td><td>/api/reports/officer-workload</td><td>web.escrow_complete</td><td>Escrow Category=Escrow, Escrow Status=O, Bin Status=Active</td><td>Officer, Count, Fees Total, Phase breakdown</td></tr>
+              <tr><td>Open Escrows — All</td><td>All Reports</td><td>/api/reports/open-escrows</td><td>web.escrow_complete</td><td>Escrow Category=Escrow, Escrow Status=O, Bin Status=Active</td><td>Escrow #, Open Date, Phase, Days, Address, Officer, List Agent, Sell Agent, Fees Total, Tasks</td></tr>
+              <tr><td>Open Escrows — Opening</td><td>Opening</td><td>/api/reports/open-escrows</td><td>web.escrow_complete</td><td>Same + client filter: Opening (currently 0 — no active Opening bins)</td><td>Same as All</td></tr>
+              <tr><td>Open Escrows — Processing</td><td>Processing</td><td>/api/reports/open-escrows</td><td>web.escrow_complete</td><td>Same + client filter: Processing</td><td>Same as All</td></tr>
+              <tr><td>Open Escrows — Funding</td><td>Funding</td><td>/api/reports/open-escrows</td><td>web.escrow_complete</td><td>Same + client filter: Funding</td><td>Same as All</td></tr>
+              <tr><td>Open Escrows — Closing</td><td>Closing</td><td>/api/reports/open-escrows</td><td>web.escrow_complete</td><td>Same + client filter: Closing (Post-Closing bin)</td><td>Same as All</td></tr>
             </tbody>
           </table>
         </div>
