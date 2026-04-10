@@ -657,7 +657,7 @@ app.get('/production', requireAmyAccess, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'management.html'));
 });
 
-app.get('/owner-production', requireAmyAccess, (req, res) => {
+app.get('/owner-production', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'owner-production.html'));
 });
 
