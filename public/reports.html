@@ -286,12 +286,19 @@
 
     function renderPipeline(data) {
       const el = document.getElementById('pipeline-section');
-      const phases = data.phases;
+      const phaseData = data.phases;
       const total = data.total;
+
+      // Ensure all 4 phases always show, even if zero
+      const allPhases = ['Opening', 'Processing', 'Funding', 'Closing'];
+      const phaseMap = {};
+      phaseData.forEach(p => { phaseMap[p.phase] = p; });
+      const phases = allPhases.map(name => phaseMap[name] || { phase: name, count: '0', total_value: '0' });
+
       el.innerHTML = `
         <div class="card">
           <div class="card-title">Pipeline Overview</div>
-          <div class="card-subtitle">Open escrows across all phases</div>
+          <div class="card-subtitle">Active escrows across all phases</div>
           <div class="metric-grid">
             ${phases.map(p => `
               <div class="metric-box">
@@ -302,7 +309,7 @@
             `).join('')}
             <div class="metric-box" style="border-color: var(--accent);">
               <div class="metric-value">${total.count}</div>
-              <div class="metric-label">Total Open</div>
+              <div class="metric-label">Total Active</div>
               <div class="metric-sub">${fmt(total.value)}</div>
             </div>
           </div>
