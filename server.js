@@ -363,14 +363,14 @@ app.get('/api/reports/open-escrows', requireAuth, async (req, res) => {
   }
 });
 
-// Officer workload — escrows per officer
+// Processor workload — escrows per assigned processor
 // Source: web.escrow_complete (materialized from cae.gold_vw_escrow_complete)
 // Filters: Escrow Category=Escrow, Escrow Status=O (Open), Bin Status=Active
 // Matches: ggl_vw_escrow_summary filter logic
 app.get('/api/reports/officer-workload', requireAuth, async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT "Escrow Officer" as officer,
+      SELECT COALESCE("Assigned To", 'Unassigned') as officer,
         COUNT(*) as count,
         COALESCE(SUM("Fees Total"), 0) as total_value,
         SUM(CASE WHEN "Bin Phase" = 'Opening' THEN 1 ELSE 0 END) as opening,
@@ -381,7 +381,7 @@ app.get('/api/reports/officer-workload', requireAuth, async (req, res) => {
       WHERE "Escrow Category" = 'Escrow'
         AND "Escrow Status" = 'O'
         AND "Bin Status" = 'Active'
-      GROUP BY "Escrow Officer"
+      GROUP BY "Assigned To"
       ORDER BY COUNT(*) DESC
     `);
     res.json({ officers: result.rows });
