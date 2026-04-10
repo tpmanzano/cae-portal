@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Owner Production — California Advantage Escrow</title>
+  <link rel="stylesheet" href="/css/mpower.css?v=5" />
+  <style>
+    .metric-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: var(--space-lg); margin-bottom: var(--space-xl); }
+    .metric-box { background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--space-lg); text-align: center; }
+    .metric-value { font-size: 28px; font-weight: 700; color: var(--accent); }
+    .metric-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .data-table th { text-align: left; padding: 10px 12px; border-bottom: 2px solid var(--border); color: var(--text-muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; }
+    .data-table th:hover { color: var(--accent); }
+    .data-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--text-primary); }
+    .data-table tr:hover td { background: var(--surface-hover); }
+    .data-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+    .h-bar-row { display: flex; align-items: center; gap: 12px; padding: 6px 0; }
+    .h-bar-label { min-width: 180px; font-size: 13px; font-weight: 500; text-align: right; }
+    .h-bar-track { flex: 1; height: 24px; background: var(--border); border-radius: 4px; overflow: hidden; position: relative; }
+    .h-bar-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width 0.3s; display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; }
+    .h-bar-fill-value { font-size: 11px; color: white; font-weight: 600; white-space: nowrap; }
+    .h-bar-count { min-width: 40px; font-size: 12px; color: var(--text-muted); text-align: center; }
+
+    .period-bar { display: flex; gap: 8px; flex-wrap: wrap; }
+    .period-btn { padding: 6px 14px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-card); color: var(--text-primary); cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.2s; }
+    .period-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .period-btn:hover { border-color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="grid-bg"></div>
+  <nav class="topnav">
+    <div class="topnav-left">
+      <button class="collapse-btn" onclick="toggleSidebar()" title="Toggle sidebar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+      </button>
+      <a href="/" class="topnav-brand">
+        <span style="font-weight: 700;">California Advantage Escrow</span> <span style="font-size: 9px; padding: 1px 6px; border-radius: 6px; background: #fef3c7; color: #92400e; font-weight: 600; vertical-align: middle;">BETA</span>
+      </a>
+    </div>
+    <div class="topnav-center">
+      <a href="/" class="topnav-link">CAE</a>
+      <a href="/reports" class="topnav-link">Reports</a>
+      <a href="#" class="topnav-link">Data</a>
+    </div>
+    <div class="topnav-right">
+      <span class="topnav-env">California Advantage Escrow</span>
+      <div class="account-menu">
+        <button class="account-btn" onclick="toggleAccountMenu()" id="account-btn">
+          <div class="account-avatar" id="account-avatar" style="color: white; display: flex; align-items: center; justify-content: center;">A</div>
+        </button>
+        <div class="account-dropdown" id="account-dropdown">
+          <div class="account-info" id="account-info">
+            <div class="account-name" id="account-name">User</div>
+            <div class="account-email" id="account-email">email</div>
+          </div>
+          <div class="account-divider"></div>
+          <button class="account-option" onclick="toggleTheme()">
+            <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            <span>Toggle Theme</span>
+          </button>
+          <a href="/auth/logout" class="account-option">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span>Sign Out</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+        <a href="/" class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          <span>Dashboard</span>
+        </a>
+        <div class="nav-section">
+          <div class="nav-section-label">Escrow</div>
+          <a href="/reports" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span>Daily Reports</span>
+          </a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-label">Officers</div>
+          <a href="/officers/erin" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>Erin Ferrell</span>
+          </a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-label">Tools</div>
+          <a href="/dre-lookup" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <span>DRE Lookup</span>
+          </a>
+        </div>
+        <a href="/amy" class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>Amy's Corner</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <p>Powered by <span class="brand">mPowerAnalytics</span></p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="content">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <h1 class="page-title">Owner Production <span style="font-size: 11px; padding: 2px 8px; border-radius: 8px; background: #fef3c7; color: #92400e; font-weight: 600; vertical-align: middle;">BETA</span></h1>
+            <p class="page-subtitle">Who's producing, how much, and the trend</p>
+          </div>
+        </div>
+
+        <!-- Period Slicer -->
+        <div class="period-bar" style="margin-bottom: var(--space-xl);">
+          <button class="period-btn" onclick="setPeriod('2026')" id="btn-2026">2026</button>
+          <button class="period-btn" onclick="setPeriod('2025')" id="btn-2025">2025</button>
+          <button class="period-btn" onclick="setPeriod('q1-2026')" id="btn-q1-2026">Q1 2026</button>
+          <button class="period-btn" onclick="setPeriod('q2-2026')" id="btn-q2-2026">Q2 2026</button>
+          <button class="period-btn" onclick="setPeriod('last90')" id="btn-last90">Last 90 Days</button>
+        </div>
+
+        <!-- YTD Summary -->
+        <div id="summary-section"></div>
+
+        <!-- Agent Horizontal Bar Chart -->
+        <div id="bar-chart-section" style="margin-top: var(--space-xl);"></div>
+
+        <!-- Agent Detail Table -->
+        <div id="agent-table-section" style="margin-top: var(--space-xl);"></div>
+
+        <!-- Fee Distribution Donut -->
+        <div id="donut-section" style="margin-top: var(--space-xl);"></div>
+
+        <!-- Recent Closings -->
+        <div id="recent-section" style="margin-top: var(--space-xl);"></div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    function fmt(n) { return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n); }
+
+    let allAgentData = {};
+    let currentPeriod = '2026';
+
+    // Load all years upfront
+    Promise.all([
+      fetch('/api/reports/production-agents?year=2026').then(r => r.json()),
+      fetch('/api/reports/production-agents?year=2025').then(r => r.json()),
+      fetch('/api/reports/recent-closings?days=90').then(r => r.json()),
+    ]).then(([a2026, a2025, recent]) => {
+      allAgentData['2026'] = a2026.agents;
+      allAgentData['2025'] = a2025.agents;
+      allAgentData['recent'] = recent.closings;
+      setPeriod('2026');
+    });
+
+    function filterByQuarter(agents, year, quarter) {
+      // We don't have quarterly data pre-split — need to re-fetch or filter recent closings
+      // For now, show the full year data with a note
+      return agents;
+    }
+
+    function setPeriod(period) {
+      currentPeriod = period;
+      document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById('btn-' + period);
+      if (btn) btn.classList.add('active');
+
+      let agents, periodLabel, closings;
+
+      if (period === '2026') {
+        agents = allAgentData['2026'] || [];
+        periodLabel = '2026 Year-to-Date';
+        closings = (allAgentData['recent'] || []).filter(c => c.close_date && c.close_date.startsWith('2026'));
+      } else if (period === '2025') {
+        agents = allAgentData['2025'] || [];
+        periodLabel = '2025 Full Year';
+        closings = (allAgentData['recent'] || []).filter(c => c.close_date && c.close_date.startsWith('2025'));
+      } else if (period === 'q1-2026') {
+        periodLabel = 'Q1 2026 (Jan-Mar)';
+        closings = (allAgentData['recent'] || []).filter(c => {
+          if (!c.close_date) return false;
+          const m = parseInt(c.close_date.split('-')[1]);
+          return c.close_date.startsWith('2026') && m >= 1 && m <= 3;
+        });
+        agents = aggregateFromClosings(closings);
+      } else if (period === 'q2-2026') {
+        periodLabel = 'Q2 2026 (Apr-Jun)';
+        closings = (allAgentData['recent'] || []).filter(c => {
+          if (!c.close_date) return false;
+          const m = parseInt(c.close_date.split('-')[1]);
+          return c.close_date.startsWith('2026') && m >= 4 && m <= 6;
+        });
+        agents = aggregateFromClosings(closings);
+      } else if (period === 'last90') {
+        periodLabel = 'Last 90 Days';
+        closings = allAgentData['recent'] || [];
+        agents = aggregateFromClosings(closings);
+      } else {
+        agents = [];
+        periodLabel = period;
+        closings = [];
+      }
+
+      renderSummary(agents, periodLabel);
+      renderBarChart(agents, periodLabel);
+      renderDonut(agents, periodLabel);
+      renderAgentTable(agents, periodLabel);
+      renderRecent(closings, periodLabel);
+    }
+
+    function aggregateFromClosings(closings) {
+      const map = {};
+      closings.forEach(c => {
+        const key = (c.agent || 'Unknown') + '|' + (c.team || 'Unassigned');
+        if (!map[key]) map[key] = { agent: c.agent || 'Unknown', team: c.team || 'Unassigned', closed: 0, fees: 0, volume: 0 };
+        map[key].closed++;
+        map[key].fees += parseFloat(c.fees) || 0;
+        map[key].volume += parseFloat(c.price) || 0;
+      });
+      return Object.values(map).sort((a, b) => b.fees - a.fees).map(a => ({
+        ...a,
+        closed: a.closed.toString(),
+        fees: a.fees.toString(),
+        volume: a.volume.toString(),
+        avg_price: (a.closed > 0 ? a.volume / a.closed : 0).toString()
+      }));
+    }
+
+    function renderSummary(agents, label) {
+      const totalClosed = agents.reduce((a, x) => a + parseInt(x.closed), 0);
+      const totalFees = agents.reduce((a, x) => a + parseFloat(x.fees), 0);
+      const totalVolume = agents.reduce((a, x) => a + parseFloat(x.volume), 0);
+      const avgFee = totalClosed > 0 ? totalFees / totalClosed : 0;
+      const topAgent = agents.length > 0 ? agents[0].agent : 'N/A';
+
+      document.getElementById('summary-section').innerHTML = `
+        <div class="card">
+          <div class="card-title">${label}</div>
+          <div class="metric-grid">
+            <div class="metric-box">
+              <div class="metric-value">${totalClosed}</div>
+              <div class="metric-label">Closings</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-value">${fmt(totalFees)}</div>
+              <div class="metric-label">Fee Income</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-value">${fmt(totalVolume)}</div>
+              <div class="metric-label">Total Volume</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-value">${fmt(avgFee)}</div>
+              <div class="metric-label">Avg Fee</div>
+            </div>
+            <div class="metric-box" style="border-color: var(--accent);">
+              <div class="metric-value" style="font-size: 16px;">${topAgent}</div>
+              <div class="metric-label">Top Producer</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderBarChart(agents, label) {
+      if (agents.length === 0) {
+        document.getElementById('bar-chart-section').innerHTML = '<div class="card"><div style="text-align:center;padding:20px;color:var(--text-muted);">No data for this period</div></div>';
+        return;
+      }
+      const maxFees = Math.max(...agents.map(a => parseFloat(a.fees)));
+
+      document.getElementById('bar-chart-section').innerHTML = `
+        <div class="card">
+          <div class="card-title">Fee Income by Agent</div>
+          <div class="card-subtitle">${label}</div>
+          <div style="padding: var(--space-md) 0;">
+            ${agents.map(a => {
+              const fees = parseFloat(a.fees);
+              const pct = maxFees > 0 ? (fees / maxFees * 100) : 0;
+              return `
+                <div class="h-bar-row">
+                  <div class="h-bar-label">${a.agent}</div>
+                  <div class="h-bar-track">
+                    <div class="h-bar-fill" style="width: ${Math.max(pct, 1)}%;">
+                      ${pct > 15 ? '<span class="h-bar-fill-value">' + fmt(fees) + '</span>' : ''}
+                    </div>
+                  </div>
+                  ${pct <= 15 ? '<span style="font-size:11px;color:var(--text-muted);min-width:60px;">' + fmt(fees) + '</span>' : ''}
+                  <div class="h-bar-count">${parseInt(a.closed)}</div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: var(--space-sm);">Bar = fee income | Number = closings</div>
+        </div>
+      `;
+    }
+
+    function renderDonut(agents, label) {
+      if (agents.length === 0) { document.getElementById('donut-section').innerHTML = ''; return; }
+      const totalFees = agents.reduce((a, x) => a + parseFloat(x.fees), 0);
+      const colors = ['#2563eb', '#7c3aed', '#059669', '#d97706', '#dc2626', '#0891b2', '#4f46e5', '#be185d', '#65a30d', '#ca8a04'];
+      const topAgents = agents.slice(0, 8);
+      const otherFees = agents.slice(8).reduce((a, x) => a + parseFloat(x.fees), 0);
+
+      // SVG donut chart
+      let cumulativePct = 0;
+      const segments = topAgents.map((a, i) => {
+        const pct = totalFees > 0 ? parseFloat(a.fees) / totalFees * 100 : 0;
+        const startAngle = cumulativePct * 3.6;
+        cumulativePct += pct;
+        const endAngle = cumulativePct * 3.6;
+        return { agent: a.agent, pct, fees: parseFloat(a.fees), color: colors[i % colors.length], startAngle, endAngle };
+      });
+      if (otherFees > 0) {
+        const pct = otherFees / totalFees * 100;
+        segments.push({ agent: 'Other', pct, fees: otherFees, color: '#94a3b8', startAngle: cumulativePct * 3.6, endAngle: (cumulativePct + pct) * 3.6 });
+      }
+
+      // Build SVG arcs
+      function polarToCartesian(cx, cy, r, angleDeg) {
+        const rad = (angleDeg - 90) * Math.PI / 180;
+        return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+      }
+      function describeArc(cx, cy, r, startAngle, endAngle) {
+        if (endAngle - startAngle >= 359.99) return \`M \${cx} \${cy - r} A \${r} \${r} 0 1 1 \${cx - 0.01} \${cy - r}\`;
+        const start = polarToCartesian(cx, cy, r, endAngle);
+        const end = polarToCartesian(cx, cy, r, startAngle);
+        const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+        return \`M \${start.x} \${start.y} A \${r} \${r} 0 \${largeArc} 0 \${end.x} \${end.y}\`;
+      }
+
+      const svgPaths = segments.map(s =>
+        \`<path d="\${describeArc(100, 100, 70, s.startAngle, s.endAngle)}" stroke="\${s.color}" stroke-width="25" fill="none"/>\`
+      ).join('');
+
+      const legend = segments.map(s =>
+        \`<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <div style="width:12px;height:12px;border-radius:2px;background:\${s.color};flex-shrink:0;"></div>
+          <span style="font-size:12px;flex:1;">\${s.agent}</span>
+          <span style="font-size:12px;font-weight:600;">\${fmt(s.fees)}</span>
+          <span style="font-size:11px;color:var(--text-muted);">\${s.pct.toFixed(1)}%</span>
+        </div>\`
+      ).join('');
+
+      document.getElementById('donut-section').innerHTML = \`
+        <div class="card">
+          <div class="card-title">Fee Distribution by Agent</div>
+          <div class="card-subtitle">\${label}</div>
+          <div style="display:flex;gap:40px;align-items:center;flex-wrap:wrap;padding:var(--space-lg) 0;">
+            <div style="flex-shrink:0;">
+              <svg width="200" height="200" viewBox="0 0 200 200">
+                \${svgPaths}
+                <text x="100" y="95" text-anchor="middle" style="font-size:22px;font-weight:700;fill:var(--text-primary);">\${fmt(totalFees)}</text>
+                <text x="100" y="115" text-anchor="middle" style="font-size:11px;fill:var(--text-muted);">Total Fees</text>
+              </svg>
+            </div>
+            <div style="flex:1;min-width:200px;">
+              \${legend}
+            </div>
+          </div>
+        </div>
+      \`;
+    }
+
+    function renderAgentTable(agents, label) {
+      document.getElementById('agent-table-section').innerHTML = `
+        <div class="card">
+          <div class="card-title">Agent Detail — ${label}</div>
+          <div style="overflow-x: auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Team</th>
+                  <th>Agent</th>
+                  <th class="num">Closings</th>
+                  <th class="num">Fees</th>
+                  <th class="num">Volume</th>
+                  <th class="num">Avg Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${agents.map(a => `
+                  <tr>
+                    <td>${a.team}</td>
+                    <td><strong>${a.agent}</strong></td>
+                    <td class="num">${a.closed}</td>
+                    <td class="num">${fmt(a.fees)}</td>
+                    <td class="num">${fmt(a.volume)}</td>
+                    <td class="num">${fmt(a.avg_price)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderRecent(closings, label) {
+      if (closings.length === 0) {
+        document.getElementById('recent-section').innerHTML = '';
+        return;
+      }
+      document.getElementById('recent-section').innerHTML = `
+        <div class="card">
+          <div class="card-title">Recent Closings</div>
+          <div class="card-subtitle">${closings.length} closings</div>
+          <div style="overflow-x: auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Escrow #</th>
+                  <th>Close Date</th>
+                  <th>Property</th>
+                  <th>Agent</th>
+                  <th>Team</th>
+                  <th class="num">Price</th>
+                  <th class="num">Fees</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${closings.slice(0, 50).map(c => `
+                  <tr>
+                    <td><strong>${c.escrow_number}</strong></td>
+                    <td>${c.close_date || ''}</td>
+                    <td>${c.address || ''}</td>
+                    <td>${c.agent || ''}</td>
+                    <td>${c.team || ''}</td>
+                    <td class="num">${c.price ? fmt(c.price) : ''}</td>
+                    <td class="num">${c.fees ? fmt(c.fees) : ''}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>
