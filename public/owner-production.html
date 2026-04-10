@@ -331,48 +331,47 @@
 
       // Build SVG arcs
       function polarToCartesian(cx, cy, r, angleDeg) {
-        const rad = (angleDeg - 90) * Math.PI / 180;
+        var rad = (angleDeg - 90) * Math.PI / 180;
         return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
       }
       function describeArc(cx, cy, r, startAngle, endAngle) {
-        if (endAngle - startAngle >= 359.99) return \`M \${cx} \${cy - r} A \${r} \${r} 0 1 1 \${cx - 0.01} \${cy - r}\`;
-        const start = polarToCartesian(cx, cy, r, endAngle);
-        const end = polarToCartesian(cx, cy, r, startAngle);
-        const largeArc = endAngle - startAngle > 180 ? 1 : 0;
-        return \`M \${start.x} \${start.y} A \${r} \${r} 0 \${largeArc} 0 \${end.x} \${end.y}\`;
+        if (endAngle - startAngle >= 359.99) return 'M ' + cx + ' ' + (cy - r) + ' A ' + r + ' ' + r + ' 0 1 1 ' + (cx - 0.01) + ' ' + (cy - r);
+        var start = polarToCartesian(cx, cy, r, endAngle);
+        var end = polarToCartesian(cx, cy, r, startAngle);
+        var largeArc = endAngle - startAngle > 180 ? 1 : 0;
+        return 'M ' + start.x + ' ' + start.y + ' A ' + r + ' ' + r + ' 0 ' + largeArc + ' 0 ' + end.x + ' ' + end.y;
       }
 
-      const svgPaths = segments.map(s =>
-        \`<path d="\${describeArc(100, 100, 70, s.startAngle, s.endAngle)}" stroke="\${s.color}" stroke-width="25" fill="none"/>\`
-      ).join('');
+      var svgPaths = segments.map(function(s) {
+        return '<path d="' + describeArc(100, 100, 70, s.startAngle, s.endAngle) + '" stroke="' + s.color + '" stroke-width="25" fill="none"/>';
+      }).join('');
 
-      const legend = segments.map(s =>
-        \`<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-          <div style="width:12px;height:12px;border-radius:2px;background:\${s.color};flex-shrink:0;"></div>
-          <span style="font-size:12px;flex:1;">\${s.agent}</span>
-          <span style="font-size:12px;font-weight:600;">\${fmt(s.fees)}</span>
-          <span style="font-size:11px;color:var(--text-muted);">\${s.pct.toFixed(1)}%</span>
-        </div>\`
-      ).join('');
+      var legend = segments.map(function(s) {
+        return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">' +
+          '<div style="width:12px;height:12px;border-radius:2px;background:' + s.color + ';flex-shrink:0;"></div>' +
+          '<span style="font-size:12px;flex:1;">' + s.agent + '</span>' +
+          '<span style="font-size:12px;font-weight:600;">' + fmt(s.fees) + '</span>' +
+          '<span style="font-size:11px;color:var(--text-muted);">' + s.pct.toFixed(1) + '%</span>' +
+          '</div>';
+      }).join('');
 
-      document.getElementById('donut-section').innerHTML = \`
-        <div class="card">
-          <div class="card-title">Fee Distribution by Agent</div>
-          <div class="card-subtitle">\${label}</div>
-          <div style="display:flex;gap:40px;align-items:center;flex-wrap:wrap;padding:var(--space-lg) 0;">
-            <div style="flex-shrink:0;">
-              <svg width="200" height="200" viewBox="0 0 200 200">
-                \${svgPaths}
-                <text x="100" y="95" text-anchor="middle" style="font-size:22px;font-weight:700;fill:var(--text-primary);">\${fmt(totalFees)}</text>
-                <text x="100" y="115" text-anchor="middle" style="font-size:11px;fill:var(--text-muted);">Total Fees</text>
-              </svg>
-            </div>
-            <div style="flex:1;min-width:200px;">
-              \${legend}
-            </div>
-          </div>
-        </div>
-      \`;
+      document.getElementById('donut-section').innerHTML =
+        '<div class="card">' +
+          '<div class="card-title">Fee Distribution by Agent</div>' +
+          '<div class="card-subtitle">' + label + '</div>' +
+          '<div style="display:flex;gap:40px;align-items:center;flex-wrap:wrap;padding:var(--space-lg) 0;">' +
+            '<div style="flex-shrink:0;">' +
+              '<svg width="200" height="200" viewBox="0 0 200 200">' +
+                svgPaths +
+                '<text x="100" y="95" text-anchor="middle" style="font-size:22px;font-weight:700;fill:var(--text-primary);">' + fmt(totalFees) + '</text>' +
+                '<text x="100" y="115" text-anchor="middle" style="font-size:11px;fill:var(--text-muted);">Total Fees</text>' +
+              '</svg>' +
+            '</div>' +
+            '<div style="flex:1;min-width:200px;">' +
+              legend +
+            '</div>' +
+          '</div>' +
+        '</div>';
     }
 
     function renderAgentTable(agents, label) {
