@@ -619,7 +619,7 @@ app.get('/api/admin/google-drive-inventory', requireAdmin, async (req, res) => {
         'import json;' +
         'creds = service_account.Credentials.from_service_account_file(' +
         "r\'C:\\\\Users\\\\Manzano\\\\.config\\\\gcloud\\\\mpower-ops-service-account.json\'," +
-        "scopes=[\'https://www.googleapis.com/auth/drive.readonly\']," +
+        "scopes=[\'https://www.googleapis.com/auth/drive\']," +
         "subject=\'tom@mpoweranalytics.com\'" +
         ');' +
         'service = build(\'drive\', \'v3\', credentials=creds);' +
