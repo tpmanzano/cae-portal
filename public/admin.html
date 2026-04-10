@@ -213,9 +213,9 @@
               <tr><td><strong>Egress</strong></td><td>$0.05/GB beyond credit</td><td>~few MB/day</td><td>Negligible</td><td>TCP proxy traffic counts</td></tr>
               <tr><td><strong>Cron</strong></td><td>Native, min 5 min interval</td><td>Not configured</td><td>N/A</td><td>UTC timing</td></tr>
               <tr><td><strong>Sync</strong></td><td>pg_dump/restore, COPY</td><td>Manual one-time (4/9)</td><td>No automation</td><td>Truncate-reload bronze, views recompute</td></tr>
-              <tr><td><strong>Escrows</strong></td><td>—</td><td>2,276 rows</td><td>Light</td><td>Grows slowly</td></tr>
-              <tr><td><strong>Progress Items</strong></td><td>—</td><td>189,725 rows</td><td>Moderate</td><td>Grows daily, joins to escrows</td></tr>
-              <tr><td><strong>View Recompute</strong></td><td>CPU on query</td><td>Per report load</td><td>Managed</td><td>5-min browser cache reduces queries</td></tr>
+              <tr><td><strong>web.escrow_complete</strong></td><td>—</td><td>2,276 rows</td><td>Light</td><td>Materialized daily, syncs in 3.7s</td></tr>
+              <tr><td><strong>web.task_complete</strong></td><td>—</td><td>171,394 rows</td><td>Moderate</td><td>Materialized daily, syncs in 19s</td></tr>
+              <tr><td><strong>Total Sync</strong></td><td>—</td><td>173,670 rows</td><td>Low</td><td>~62s materialize + ~23s sync = under 2 min</td></tr>
             </tbody>
           </table>
         </div>
