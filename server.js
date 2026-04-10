@@ -640,31 +640,31 @@ app.get('/admin', requireAdmin, (req, res) => {
 // AMY'S CORNER — restricted access
 // ══════════════════════════════════════════════
 
-const AMY_ALLOWED = ['amyc@kw.com', 'tpmanzano@gmail.com', 'tom@mpoweranalytics.com'];
+// Access tiers: All (any auth), Management (Amy + Erin + Tom), Executive (Amy + Tom)
+const EXECUTIVE = ['amyc@kw.com', 'tpmanzano@gmail.com', 'tom@mpoweranalytics.com'];
+const MANAGEMENT = ['amyc@kw.com', 'erin@caescrow.net', 'tpmanzano@gmail.com', 'tom@mpoweranalytics.com'];
 
-function requireAmyAccess(req, res, next) {
+function requireExecutive(req, res, next) {
   if (!req.isAuthenticated()) return res.redirect('/login');
-  const email = (req.user.email || '').toLowerCase();
-  if (AMY_ALLOWED.includes(email)) return next();
+  if (EXECUTIVE.includes((req.user.email || '').toLowerCase())) return next();
   res.status(403).send('Access restricted');
 }
 
-app.get('/amy', requireAmyAccess, (req, res) => {
+function requireManagement(req, res, next) {
+  if (!req.isAuthenticated()) return res.redirect('/login');
+  if (MANAGEMENT.includes((req.user.email || '').toLowerCase())) return next();
+  res.status(403).send('Access restricted');
+}
+
+app.get('/amy', requireExecutive, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'amy.html'));
 });
 
-app.get('/production', requireAmyAccess, (req, res) => {
+app.get('/production', requireExecutive, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'management.html'));
 });
 
-const PRODUCTION_ALLOWED = ['amyc@kw.com', 'erin@caescrow.net', 'tpmanzano@gmail.com', 'tom@mpoweranalytics.com'];
-
-app.get('/owner-production', (req, res, next) => {
-  if (!req.isAuthenticated()) return res.redirect('/login');
-  const email = (req.user.email || '').toLowerCase();
-  if (PRODUCTION_ALLOWED.includes(email)) return next();
-  res.status(403).send('Access restricted');
-}, (req, res) => {
+app.get('/owner-production', requireManagement, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'owner-production.html'));
 });
 

@@ -158,17 +158,20 @@
                 <th onclick="sortRegistry('route')">API Route</th>
                 <th onclick="sortRegistry('view')">Source View</th>
                 <th onclick="sortRegistry('filters')">Filters Applied</th>
+                <th onclick="sortRegistry('access')">Access</th>
                 <th onclick="sortRegistry('columns')">Columns Shown</th>
               </tr>
             </thead>
             <tbody>
-              <tr><td>Pipeline Summary</td><td>All Reports</td><td>/api/reports/pipeline-summary</td><td>web.escrow_complete</td><td>Escrow Category=Escrow, Escrow Status=O, Bin Status=Active</td><td>Phase, Count, Fees Total</td></tr>
-              <tr><td>Officer Workload</td><td>All Reports</td><td>/api/reports/officer-workload</td><td>web.escrow_complete</td><td>Escrow Category=Escrow, Escrow Status=O, Bin Status=Active</td><td>Officer, Count, Fees Total, Phase breakdown</td></tr>
-              <tr><td>Open Escrows — All</td><td>All Reports</td><td>/api/reports/open-escrows</td><td>web.escrow_complete</td><td>Escrow Category=Escrow, Escrow Status=O, Bin Status=Active</td><td>Escrow #, Open Date, Phase, Days, Address, Officer, List Agent, Sell Agent, Fees Total, Tasks</td></tr>
-              <tr><td>Open Escrows — Opening</td><td>Opening</td><td>/api/reports/open-escrows</td><td>web.escrow_complete</td><td>Same + client filter: Opening (currently 0 — no active Opening bins)</td><td>Same as All</td></tr>
-              <tr><td>Open Escrows — Processing</td><td>Processing</td><td>/api/reports/open-escrows</td><td>web.escrow_complete</td><td>Same + client filter: Processing</td><td>Same as All</td></tr>
-              <tr><td>Open Escrows — Funding</td><td>Funding</td><td>/api/reports/open-escrows</td><td>web.escrow_complete</td><td>Same + client filter: Funding</td><td>Same as All</td></tr>
-              <tr><td>Open Escrows — Closing</td><td>Closing</td><td>/api/reports/open-escrows</td><td>web.escrow_complete</td><td>Same + client filter: Closing (Post-Closing bin)</td><td>Same as All</td></tr>
+              <tr><td>Pipeline Summary</td><td>All Reports</td><td>/api/reports/pipeline-summary</td><td>web.escrow_complete</td><td>Escrow Category=Escrow, Escrow Status=O, Bin Status=Active</td><td>All</td><td>Phase, Count, Fees Total</td></tr>
+              <tr><td>Processor Workload</td><td>All Reports</td><td>/api/reports/officer-workload</td><td>web.escrow_complete</td><td>Escrow Category=Escrow, Escrow Status=O, Bin Status=Active</td><td>All</td><td>Assigned To, Count, Fees Total, Phase breakdown</td></tr>
+              <tr><td>Open Escrows — All</td><td>All Reports</td><td>/api/reports/open-escrows</td><td>web.escrow_complete</td><td>Escrow Category=Escrow, Escrow Status=O, Bin Status=Active</td><td>All</td><td>Escrow #, Open Date, Phase, Days, Address, Assigned To, Agents, Fees, Tasks</td></tr>
+              <tr><td>Open Escrows — Opening</td><td>Opening</td><td>/api/reports/open-escrows</td><td>web.escrow_complete</td><td>Same + client filter: Opening</td><td>All</td><td>Same</td></tr>
+              <tr><td>Open Escrows — Processing</td><td>Processing</td><td>/api/reports/open-escrows</td><td>web.escrow_complete</td><td>Same + client filter: Processing</td><td>All</td><td>Same</td></tr>
+              <tr><td>Open Escrows — Funding</td><td>Funding</td><td>/api/reports/open-escrows</td><td>web.escrow_complete</td><td>Same + client filter: Funding</td><td>All</td><td>Same</td></tr>
+              <tr><td>Open Escrows — Closing</td><td>Closing</td><td>/api/reports/open-escrows</td><td>web.escrow_complete</td><td>Same + client filter: Closing</td><td>All</td><td>Same</td></tr>
+              <tr><td>Owner Production</td><td>Amy + Erin</td><td>/api/reports/production-*</td><td>web.escrow_complete</td><td>Escrow Status=C, Escrow Category=Escrow, by year</td><td>Management</td><td>Team, Agent, Closings, Fees, Share, Volume</td></tr>
+              <tr><td>Production Dashboard</td><td>Amy</td><td>/api/reports/production-*</td><td>web.escrow_complete</td><td>Same</td><td>Executive</td><td>Monthly trend, agent table, recent closings</td></tr>
             </tbody>
           </table>
         </div>
@@ -180,7 +183,7 @@
             const table = document.getElementById('report-registry');
             const tbody = table.querySelector('tbody');
             const rows = Array.from(tbody.querySelectorAll('tr'));
-            const colMap = { name: 0, page: 1, route: 2, view: 3, filters: 4, columns: 5 };
+            const colMap = { name: 0, page: 1, route: 2, view: 3, filters: 4, access: 5, columns: 6 };
             const idx = colMap[col];
             if (regSortCol === col) { regSortAsc = !regSortAsc; } else { regSortCol = col; regSortAsc = true; }
             rows.sort((a, b) => {
