@@ -443,6 +443,34 @@ app.get('/api/admin/view-inventory', requireAdmin, async (req, res) => {
   }
 });
 
+// Task detail for a single escrow
+// Source: web.task_complete (materialized from cae.gold_vw_task_complete)
+app.get('/api/reports/tasks/:escrowNumber', requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT "Progress Description" as description,
+        "Assigned To" as assigned_to,
+        "Sent On Date"::text as sent_date,
+        "Comp/Recd Date"::text as completed_date,
+        "Due Date"::text as due_date,
+        "Send By Date"::text as send_by_date,
+        "On Letter" as on_letter,
+        "Progress Notes" as notes,
+        CASE WHEN "Comp/Recd Date" IS NOT NULL THEN true ELSE false END as is_completed
+      FROM web.task_complete
+      WHERE "Escrow Number" = $1
+      ORDER BY
+        CASE WHEN "Comp/Recd Date" IS NOT NULL THEN 1 ELSE 0 END,
+        "Due Date" ASC NULLS LAST,
+        "Progress Description"
+    `, [req.params.escrowNumber]);
+    res.json({ tasks: result.rows, escrow_number: req.params.escrowNumber, count: result.rowCount });
+  } catch (err) {
+    console.error('Task detail error:', err.message);
+    res.status(500).json({ error: 'Data unavailable', detail: err.message });
+  }
+});
+
 // Local dev bypass — auto-login when no OAuth configured
 if (!process.env.GOOGLE_CLIENT_ID && !process.env.MICROSOFT_CLIENT_ID) {
   app.use((req, res, next) => {

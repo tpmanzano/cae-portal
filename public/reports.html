@@ -30,10 +30,25 @@
     [data-theme="dark"] .phase-funding { background: #064e3b; color: #6ee7b7; }
     [data-theme="dark"] .phase-closing { background: #3b1f6e; color: #c4b5fd; }
 
-    .task-bar { display: inline-flex; align-items: center; gap: 6px; }
-    .task-bar-track { width: 60px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .task-bar { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+    .task-bar:hover .task-bar-track { background: var(--accent); opacity: 0.3; }
+    .task-bar-track { width: 60px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; transition: background 0.2s; }
     .task-bar-fill { height: 100%; border-radius: 3px; background: var(--accent); }
     .task-bar-text { font-size: 11px; color: var(--text-muted); }
+
+    .task-detail-panel { background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--space-lg); margin-top: var(--space-lg); }
+    .task-detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md); padding-bottom: var(--space-sm); border-bottom: 1px solid var(--border); }
+    .task-detail-title { font-size: 16px; font-weight: 600; }
+    .task-detail-close { cursor: pointer; padding: 4px 8px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-card); color: var(--text-primary); font-size: 12px; }
+    .task-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .task-item:last-child { border-bottom: none; }
+    .task-icon { font-size: 14px; min-width: 20px; text-align: center; margin-top: 1px; }
+    .task-icon.done { color: #22c55e; }
+    .task-icon.pending { color: #ef4444; }
+    .task-desc { flex: 1; font-weight: 500; }
+    .task-dates { display: flex; gap: 16px; font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .task-summary { display: flex; gap: 16px; margin-bottom: var(--space-md); font-size: 13px; }
+    .task-summary-item { display: flex; align-items: center; gap: 4px; }
 
     .officer-row { display: flex; align-items: center; gap: var(--space-md); padding: var(--space-md) 0; border-bottom: 1px solid var(--border); }
     .officer-row:last-child { border-bottom: none; }
@@ -184,6 +199,8 @@
         <div id="escrows-section" style="margin-top: var(--space-xl);">
           <div class="loading">Loading escrows...</div>
         </div>
+
+        <div id="task-detail-section" style="margin-top: var(--space-lg); display: none;"></div>
       </div>
     </main>
   </div>
@@ -411,7 +428,7 @@
                       <td>${e.selling_agent || ''}</td>
                       <td class="num">${e.fees_total ? fmt(e.fees_total) : ''}</td>
                       <td>
-                        <div class="task-bar">
+                        <div class="task-bar" onclick="showTaskDetail('${e.escrow_number}')">
                           <div class="task-bar-track"><div class="task-bar-fill" style="width: ${pct}%"></div></div>
                           <span class="task-bar-text">${e.tasks_done || 0}/${e.tasks_total || 0}</span>
                         </div>
@@ -452,6 +469,60 @@
       const subs = document.getElementById('report-sub-items');
       subs.style.maxHeight = subs.scrollHeight + 'px';
     })();
+
+    function showTaskDetail(escrowNumber) {
+      const section = document.getElementById('task-detail-section');
+      section.style.display = '';
+      section.innerHTML = '<div class="task-detail-panel"><div style="text-align:center;padding:20px;color:var(--text-muted);">Loading tasks for ' + escrowNumber + '...</div></div>';
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      fetch('/api/reports/tasks/' + escrowNumber)
+        .then(r => r.json())
+        .then(data => {
+          if (data.error) { section.innerHTML = '<div class="task-detail-panel"><div style="color:#c53030;">' + data.error + '</div></div>'; return; }
+
+          const tasks = data.tasks;
+          const completed = tasks.filter(t => t.is_completed).length;
+          const pending = tasks.length - completed;
+
+          section.innerHTML = `
+            <div class="task-detail-panel">
+              <div class="task-detail-header">
+                <div class="task-detail-title">Tasks — ${data.escrow_number}</div>
+                <button class="task-detail-close" onclick="closeTaskDetail()">Close</button>
+              </div>
+              <div class="task-summary">
+                <div class="task-summary-item"><span class="task-icon done">&#10003;</span> ${completed} Completed</div>
+                <div class="task-summary-item"><span class="task-icon pending">&#10007;</span> ${pending} Outstanding</div>
+                <div class="task-summary-item" style="color: var(--text-muted);">${tasks.length} Total</div>
+              </div>
+              ${tasks.map(t => `
+                <div class="task-item">
+                  <div class="task-icon ${t.is_completed ? 'done' : 'pending'}">${t.is_completed ? '&#10003;' : '&#10007;'}</div>
+                  <div style="flex: 1;">
+                    <div class="task-desc">${t.description || ''}</div>
+                    <div class="task-dates">
+                      ${t.sent_date ? '<span>Sent: ' + t.sent_date + '</span>' : ''}
+                      ${t.completed_date ? '<span>Completed: ' + t.completed_date + '</span>' : ''}
+                      ${t.due_date ? '<span>Due: ' + t.due_date + '</span>' : ''}
+                      ${t.send_by_date ? '<span>Send By: ' + t.send_by_date + '</span>' : ''}
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        })
+        .catch(err => {
+          section.innerHTML = '<div class="task-detail-panel"><div style="color:#c53030;">Failed to load tasks: ' + err.message + '</div></div>';
+        });
+    }
+
+    function closeTaskDetail() {
+      const section = document.getElementById('task-detail-section');
+      section.style.display = 'none';
+      section.innerHTML = '';
+    }
 
     function sortBy(col) {
       if (sortCol === col) { sortAsc = !sortAsc; }
