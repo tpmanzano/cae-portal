@@ -195,6 +195,49 @@
           }
         </script>
 
+        <div class="section-title">Google Drive — Distributed Documents</div>
+        <div class="card" style="overflow-x: auto;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div class="card-title">Shared Documents</div>
+              <div class="card-subtitle">Documents on Google Drive — who has access</div>
+            </div>
+            <button onclick="loadDriveInventory()" style="padding: 6px 14px; font-size: 12px; font-weight: 600; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-card); color: var(--text-primary); cursor: pointer;">Refresh</button>
+          </div>
+          <div id="drive-inventory" style="margin-top: var(--space-md);"><div style="text-align:center;padding:20px;color:var(--text-muted);">Click Refresh to load</div></div>
+        </div>
+
+        <script>
+          function loadDriveInventory() {
+            var el = document.getElementById('drive-inventory');
+            el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">Loading Google Drive...</div>';
+            fetch('/api/admin/google-drive-inventory')
+              .then(function(r) { return r.json(); })
+              .then(function(data) {
+                if (data.error) { el.innerHTML = '<div style="color:#c53030;">' + data.error + '</div>'; return; }
+                var files = data.files;
+                var shared = files.filter(function(f) { return f.shared_with.length > 0; });
+                var rows = files.map(function(f) {
+                  return '<tr>' +
+                    '<td>' + (f.link ? '<a href="' + f.link + '" target="_blank" style="color:var(--accent);text-decoration:none;">' + f.name + '</a>' : f.name) + '</td>' +
+                    '<td>' + f.type + '</td>' +
+                    '<td>' + f.modified + '</td>' +
+                    '<td>' + (f.shared_with.length > 0 ? f.shared_with.join(', ') : '<span style="color:var(--text-muted);">Private</span>') + '</td>' +
+                    '</tr>';
+                }).join('');
+                el.innerHTML =
+                  '<div style="font-size:12px;color:var(--text-muted);margin-bottom:var(--space-sm);">' + files.length + ' files (' + shared.length + ' shared)</div>' +
+                  '<table class="data-table" style="font-size:12px;">' +
+                    '<thead><tr><th>Name</th><th>Type</th><th>Modified</th><th>Shared With</th></tr></thead>' +
+                    '<tbody>' + rows + '</tbody>' +
+                  '</table>';
+              })
+              .catch(function(err) {
+                el.innerHTML = '<div style="color:#c53030;">Failed: ' + err.message + '</div>';
+              });
+          }
+        </script>
+
         <div class="section-title">Database — View Inventory</div>
         <div class="card" style="overflow-x: auto;">
           <div class="card-title">PostgreSQL Views (cae schema)</div>

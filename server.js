@@ -608,6 +608,49 @@ app.get('/api/reports/tasks/:escrowNumber', requireAuth, async (req, res) => {
   }
 });
 
+// Google Drive inventory — shared documents
+app.get('/api/admin/google-drive-inventory', requireAdmin, async (req, res) => {
+  try {
+    const { exec } = require('child_process');
+    const result = await new Promise((resolve, reject) => {
+      exec('python -c "' +
+        'from google.oauth2 import service_account;' +
+        'from googleapiclient.discovery import build;' +
+        'import json;' +
+        'creds = service_account.Credentials.from_service_account_file(' +
+        "r\'C:\\\\Users\\\\Manzano\\\\.config\\\\gcloud\\\\mpower-ops-service-account.json\'," +
+        "scopes=[\'https://www.googleapis.com/auth/drive.readonly\']," +
+        "subject=\'tom@mpoweranalytics.com\'" +
+        ');' +
+        'service = build(\'drive\', \'v3\', credentials=creds);' +
+        'results = service.files().list(' +
+        "pageSize=100," +
+        "fields=\'files(id,name,mimeType,modifiedTime,shared,owners,permissions,webViewLink)\'," +
+        "orderBy=\'modifiedTime desc\'" +
+        ').execute();' +
+        'files = results.get(\'files\', []);' +
+        'output = [];' +
+        'for f in files:' +
+        '  shared_with = [];' +
+        '  for p in f.get(\'permissions\', []):' +
+        '    if p.get(\'emailAddress\') and p.get(\'emailAddress\') != \'tom@mpoweranalytics.com\':' +
+        '      shared_with.append(p.get(\'emailAddress\'));' +
+        '  output.append({\'name\': f[\'name\'], \'type\': f[\'mimeType\'].split(\'.\')[-1] if \'.\' in f[\'mimeType\'] else f[\'mimeType\'], \'modified\': f.get(\'modifiedTime\',\'\')[:10], \'shared_with\': shared_with, \'link\': f.get(\'webViewLink\',\'\'), \'id\': f[\'id\']});' +
+        'print(json.dumps(output))"',
+        { timeout: 15000 },
+        (err, stdout, stderr) => {
+          if (err) reject(err);
+          else resolve(stdout.trim());
+        }
+      );
+    });
+    res.json({ files: JSON.parse(result) });
+  } catch (err) {
+    console.error('Drive inventory error:', err.message);
+    res.status(500).json({ error: 'Google Drive unavailable', detail: err.message });
+  }
+});
+
 // Local dev bypass — auto-login when no OAuth configured
 if (!process.env.GOOGLE_CLIENT_ID && !process.env.MICROSOFT_CLIENT_ID) {
   app.use((req, res, next) => {
