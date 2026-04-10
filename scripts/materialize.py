@@ -32,13 +32,12 @@ MATERIALIZATION_PLAN = [
         'target': 'web.escrow_complete',
         'description': 'Master escrow view — all enrichments, task counts, dim lookups',
     },
-    # Add future materializations here:
-    # {
-    #     'name': 'agent_activity',
-    #     'source': 'cae.gold_vw_mld_cae_agent_activity',
-    #     'target': 'web.agent_activity',
-    #     'description': 'MLS agent activity for APS reports',
-    # },
+    {
+        'name': 'task_complete',
+        'source': 'cae.gold_vw_task_complete',
+        'target': 'web.task_complete',
+        'description': 'Full task enrichment — 55 columns, task + escrow data joined',
+    },
 ]
 
 
