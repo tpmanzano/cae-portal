@@ -140,9 +140,6 @@
         <!-- Agent Detail Table -->
         <div id="agent-table-section" style="margin-top: var(--space-xl);"></div>
 
-        <!-- Fee Distribution Donut -->
-        <div id="donut-section" style="margin-top: var(--space-xl);"></div>
-
         <!-- Recent Closings -->
         <div id="recent-section" style="margin-top: var(--space-xl);"></div>
       </div>
@@ -227,7 +224,6 @@
       renderSummary(agents, periodLabel);
       renderTeamChart(agents, periodLabel);
       renderBarChart(agents, periodLabel);
-      renderDonut(agents, periodLabel);
       renderAgentTable(agents, periodLabel);
       renderRecent(closings, periodLabel);
     }
