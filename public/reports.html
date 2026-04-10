@@ -301,17 +301,17 @@
           <div class="card-subtitle">Active escrows across all phases</div>
           <div class="metric-grid">
             ${phases.map(p => `
-              <div class="metric-box">
+              <a href="/reports?view=${p.phase.toLowerCase()}" class="metric-box" style="text-decoration: none; color: inherit; cursor: pointer;">
                 <div class="metric-value">${parseInt(p.count)}</div>
                 <div class="metric-label">${p.phase}</div>
                 <div class="metric-sub">${fmt(p.total_value)}</div>
-              </div>
+              </a>
             `).join('')}
-            <div class="metric-box" style="border-color: var(--accent);">
+            <a href="/reports?view=all" class="metric-box" style="border-color: var(--accent); text-decoration: none; color: inherit; cursor: pointer;">
               <div class="metric-value">${total.count}</div>
               <div class="metric-label">Total Active</div>
               <div class="metric-sub">${fmt(total.value)}</div>
-            </div>
+            </a>
           </div>
           <div class="last-updated">Data as of last RBJ extraction</div>
         </div>
