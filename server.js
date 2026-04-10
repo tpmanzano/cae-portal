@@ -493,25 +493,46 @@ app.get('/api/reports/production-agents', requireAuth, async (req, res) => {
   }
 });
 
-// Recent closings — detail
+// Recent closings — detail (by year or days)
 app.get('/api/reports/recent-closings', requireAuth, async (req, res) => {
   try {
-    const days = parseInt(req.query.days) || 30;
-    const result = await pool.query(`
-      SELECT "Escrow Number" as escrow_number,
-        "Close Date"::text as close_date,
-        "Property Address" as address,
-        COALESCE("List Agent Override", "Listing Agent 1") as agent,
-        "Owner Team Override" as team,
-        "Consideration" as price,
-        "Fees Total" as fees,
-        "Escrow Type Desc" as type
-      FROM web.escrow_complete
-      WHERE "Escrow Status" = 'C' AND "Escrow Category" = 'Escrow'
-        AND "Close Date" >= CURRENT_DATE - $1
-      ORDER BY "Close Date" DESC
-    `, [days]);
-    res.json({ closings: result.rows, count: result.rowCount, days });
+    let result;
+    if (req.query.year) {
+      result = await pool.query(`
+        SELECT "Escrow Number" as escrow_number,
+          "Close Date"::text as close_date,
+          "Close Date Month MM" as month,
+          "Property Address" as address,
+          COALESCE("List Agent Override", "Listing Agent 1") as agent,
+          "Owner Team Override" as team,
+          "Consideration" as price,
+          "Fees Total" as fees,
+          "Escrow Type Desc" as type
+        FROM web.escrow_complete
+        WHERE "Escrow Status" = 'C' AND "Escrow Category" = 'Escrow'
+          AND "Close Date Year" = $1::int
+        ORDER BY "Close Date" DESC
+      `, [req.query.year]);
+      res.json({ closings: result.rows, count: result.rowCount, year: req.query.year });
+    } else {
+      const days = parseInt(req.query.days) || 30;
+      result = await pool.query(`
+        SELECT "Escrow Number" as escrow_number,
+          "Close Date"::text as close_date,
+          "Close Date Month MM" as month,
+          "Property Address" as address,
+          COALESCE("List Agent Override", "Listing Agent 1") as agent,
+          "Owner Team Override" as team,
+          "Consideration" as price,
+          "Fees Total" as fees,
+          "Escrow Type Desc" as type
+        FROM web.escrow_complete
+        WHERE "Escrow Status" = 'C' AND "Escrow Category" = 'Escrow'
+          AND "Close Date" >= CURRENT_DATE - $1
+        ORDER BY "Close Date" DESC
+      `, [days]);
+      res.json({ closings: result.rows, count: result.rowCount, days });
+    }
   } catch (err) {
     res.status(500).json({ error: 'Data unavailable', detail: err.message });
   }

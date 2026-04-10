@@ -153,15 +153,17 @@
     let allAgentData = {};
     let currentPeriod = '2026';
 
-    // Load all years upfront
+    // Load all years upfront — full closing detail for filtering
     Promise.all([
       fetch('/api/reports/production-agents?year=2026').then(r => r.json()),
       fetch('/api/reports/production-agents?year=2025').then(r => r.json()),
-      fetch('/api/reports/recent-closings?days=90').then(r => r.json()),
-    ]).then(([a2026, a2025, recent]) => {
+      fetch('/api/reports/recent-closings?year=2026').then(r => r.json()),
+      fetch('/api/reports/recent-closings?year=2025').then(r => r.json()),
+    ]).then(([a2026, a2025, c2026, c2025]) => {
       allAgentData['2026'] = a2026.agents;
       allAgentData['2025'] = a2025.agents;
-      allAgentData['recent'] = recent.closings;
+      allAgentData['closings_2026'] = c2026.closings;
+      allAgentData['closings_2025'] = c2025.closings;
       setPeriod('2026');
     });
 
@@ -179,33 +181,39 @@
 
       let agents, periodLabel, closings;
 
+      var allClosings2026 = allAgentData['closings_2026'] || [];
+      var allClosings2025 = allAgentData['closings_2025'] || [];
+
       if (period === '2026') {
         agents = allAgentData['2026'] || [];
         periodLabel = '2026 Year-to-Date';
-        closings = (allAgentData['recent'] || []).filter(c => c.close_date && c.close_date.startsWith('2026'));
+        closings = allClosings2026;
       } else if (period === '2025') {
         agents = allAgentData['2025'] || [];
         periodLabel = '2025 Full Year';
-        closings = (allAgentData['recent'] || []).filter(c => c.close_date && c.close_date.startsWith('2025'));
+        closings = allClosings2025;
       } else if (period === 'q1-2026') {
         periodLabel = 'Q1 2026 (Jan-Mar)';
-        closings = (allAgentData['recent'] || []).filter(c => {
-          if (!c.close_date) return false;
-          const m = parseInt(c.close_date.split('-')[1]);
-          return c.close_date.startsWith('2026') && m >= 1 && m <= 3;
+        closings = allClosings2026.filter(function(c) {
+          var m = parseInt(c.month);
+          return m >= 1 && m <= 3;
         });
         agents = aggregateFromClosings(closings);
       } else if (period === 'q2-2026') {
         periodLabel = 'Q2 2026 (Apr-Jun)';
-        closings = (allAgentData['recent'] || []).filter(c => {
-          if (!c.close_date) return false;
-          const m = parseInt(c.close_date.split('-')[1]);
-          return c.close_date.startsWith('2026') && m >= 4 && m <= 6;
+        closings = allClosings2026.filter(function(c) {
+          var m = parseInt(c.month);
+          return m >= 4 && m <= 6;
         });
         agents = aggregateFromClosings(closings);
       } else if (period === 'last90') {
         periodLabel = 'Last 90 Days';
-        closings = allAgentData['recent'] || [];
+        var cutoff = new Date();
+        cutoff.setDate(cutoff.getDate() - 90);
+        var cutoffStr = cutoff.toISOString().split('T')[0];
+        closings = allClosings2026.concat(allClosings2025).filter(function(c) {
+          return c.close_date && c.close_date >= cutoffStr;
+        });
         agents = aggregateFromClosings(closings);
       } else {
         agents = [];
@@ -280,6 +288,7 @@
         return;
       }
       const maxFees = Math.max(...agents.map(a => parseFloat(a.fees)));
+      const totalFees = agents.reduce((a, x) => a + parseFloat(x.fees), 0);
 
       document.getElementById('bar-chart-section').innerHTML = `
         <div class="card">
@@ -289,6 +298,7 @@
             ${agents.map(a => {
               const fees = parseFloat(a.fees);
               const pct = maxFees > 0 ? (fees / maxFees * 100) : 0;
+              const share = totalFees > 0 ? (fees / totalFees * 100).toFixed(1) : '0.0';
               return `
                 <div class="h-bar-row">
                   <div class="h-bar-label">${a.agent}</div>
@@ -298,12 +308,12 @@
                     </div>
                   </div>
                   ${pct <= 15 ? '<span style="font-size:11px;color:var(--text-muted);min-width:60px;">' + fmt(fees) + '</span>' : ''}
-                  <div class="h-bar-count">${parseInt(a.closed)}</div>
+                  <div class="h-bar-count" title="Market share">${share}%</div>
                 </div>
               `;
             }).join('')}
           </div>
-          <div style="font-size: 11px; color: var(--text-muted); margin-top: var(--space-sm);">Bar = fee income | Number = closings</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: var(--space-sm);">Bar = fee income | Percentage = market share</div>
         </div>
       `;
     }
@@ -375,6 +385,7 @@
     }
 
     function renderAgentTable(agents, label) {
+      const totalFees = agents.reduce((a, x) => a + parseFloat(x.fees), 0);
       document.getElementById('agent-table-section').innerHTML = `
         <div class="card">
           <div class="card-title">Agent Detail — ${label}</div>
@@ -386,21 +397,25 @@
                   <th>Agent</th>
                   <th class="num">Closings</th>
                   <th class="num">Fees</th>
+                  <th class="num">Share</th>
                   <th class="num">Volume</th>
                   <th class="num">Avg Price</th>
                 </tr>
               </thead>
               <tbody>
-                ${agents.map(a => `
+                ${agents.map(a => {
+                  const share = totalFees > 0 ? (parseFloat(a.fees) / totalFees * 100).toFixed(1) : '0.0';
+                  return `
                   <tr>
                     <td>${a.team}</td>
                     <td><strong>${a.agent}</strong></td>
                     <td class="num">${a.closed}</td>
                     <td class="num">${fmt(a.fees)}</td>
+                    <td class="num">${share}%</td>
                     <td class="num">${fmt(a.volume)}</td>
                     <td class="num">${fmt(a.avg_price)}</td>
                   </tr>
-                `).join('')}
+                `}).join('')}
               </tbody>
             </table>
           </div>
