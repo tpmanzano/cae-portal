@@ -22,8 +22,9 @@
     .chart-bar { min-width: 30px; flex: 1; border-radius: 4px 4px 0 0; transition: opacity 0.2s; position: relative; }
     .chart-bar:hover { opacity: 0.8; }
     .chart-bar-fees { background: var(--accent); }
-    .chart-bar-label { position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); font-size: 9px; color: var(--text-muted); white-space: nowrap; }
-    .chart-bar-value { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 9px; color: var(--text-muted); white-space: nowrap; }
+    .chart-bar-label { position: absolute; bottom: -22px; left: 50%; transform: translateX(-50%); font-size: 10px; color: var(--text-primary); white-space: nowrap; font-weight: 500; }
+    .chart-bar-label-year { position: absolute; bottom: -36px; left: 50%; transform: translateX(-50%); font-size: 9px; color: var(--text-muted); white-space: nowrap; }
+    .chart-bar-value { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 9px; color: var(--text-primary); white-space: nowrap; font-weight: 600; }
     .chart-legend { display: flex; gap: 16px; font-size: 11px; color: var(--text-muted); margin-top: 28px; }
     .period-select { padding: 6px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-card); color: var(--text-primary); font-size: 12px; cursor: pointer; }
   </style>
@@ -211,18 +212,22 @@
           <div style="padding: 20px 0 30px 0;">
             <div class="chart-bar-group">
               ${months.map(m => {
-                const height = maxFees > 0 ? (parseFloat(m.fees) / maxFees * 180) : 0;
-                const label = monthNames[parseInt(m.month_num)] + (m.month_num === '01' ? ' ' + m.year : '');
+                const fees = parseFloat(m.fees);
+                const height = maxFees > 0 ? (fees / maxFees * 180) : 0;
+                const feeLabel = fees >= 1000 ? '$' + Math.round(fees / 1000) + 'K' : '$' + Math.round(fees);
+                const mon = monthNames[parseInt(m.month_num)];
+                const showYear = m.month_num === '01' || m === months[0];
                 return `
-                  <div class="chart-bar chart-bar-fees" style="height: ${Math.max(height, 2)}px;" title="${label}: ${parseInt(m.closed)} closed, ${fmt(m.fees)}">
-                    <div class="chart-bar-value">${parseInt(m.closed)}</div>
-                    <div class="chart-bar-label">${label}</div>
+                  <div class="chart-bar chart-bar-fees" style="height: ${Math.max(height, 2)}px;" title="${mon} ${m.year}: ${parseInt(m.closed)} closed, ${fmt(m.fees)}">
+                    <div class="chart-bar-value">${feeLabel}</div>
+                    <div class="chart-bar-label">${mon}</div>
+                    ${showYear ? '<div class="chart-bar-label-year">' + m.year + '</div>' : ''}
                   </div>
                 `;
               }).join('')}
             </div>
-            <div class="chart-legend">
-              <span>Bar height = fee income | Number = closings</span>
+            <div class="chart-legend" style="margin-top: 44px;">
+              <span>Bar height and label = fee income</span>
             </div>
           </div>
         </div>
