@@ -214,9 +214,9 @@ body {
 }
 
 .topnav-link {
-  padding: 6px var(--space-lg);
-  border-radius: var(--radius-pill);
-  font-size: 14px;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--text-secondary);
   text-decoration: none;
