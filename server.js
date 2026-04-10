@@ -657,7 +657,14 @@ app.get('/production', requireAmyAccess, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'management.html'));
 });
 
-app.get('/owner-production', requireAuth, (req, res) => {
+const PRODUCTION_ALLOWED = ['amyc@kw.com', 'erin@caescrow.net', 'tpmanzano@gmail.com', 'tom@mpoweranalytics.com'];
+
+app.get('/owner-production', (req, res, next) => {
+  if (!req.isAuthenticated()) return res.redirect('/login');
+  const email = (req.user.email || '').toLowerCase();
+  if (PRODUCTION_ALLOWED.includes(email)) return next();
+  res.status(403).send('Access restricted');
+}, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'owner-production.html'));
 });
 
