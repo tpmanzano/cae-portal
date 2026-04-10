@@ -443,6 +443,80 @@ app.get('/api/admin/view-inventory', requireAdmin, async (req, res) => {
   }
 });
 
+// ══════════════════════════════════════════════
+// PRODUCTION / MANAGEMENT REPORTS
+// Source: web.escrow_complete
+// ══════════════════════════════════════════════
+
+// Monthly production — closings, fees, volume by month
+app.get('/api/reports/production-monthly', requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT "Close Date Year"::text || '-' || "Close Date Month MM" as month,
+        "Close Date Year" as year,
+        "Close Date Month MM" as month_num,
+        COUNT(*) as closed,
+        COALESCE(SUM("Fees Total"), 0) as fees,
+        COALESCE(SUM("Consideration"), 0) as volume
+      FROM web.escrow_complete
+      WHERE "Escrow Status" = 'C' AND "Escrow Category" = 'Escrow'
+        AND "Close Date Year" >= 2025
+      GROUP BY "Close Date Year", "Close Date Month MM"
+      ORDER BY "Close Date Year", "Close Date Month MM"
+    `);
+    res.json({ months: result.rows });
+  } catch (err) {
+    res.status(500).json({ error: 'Data unavailable', detail: err.message });
+  }
+});
+
+// Agent production — closings and fees by agent/team
+app.get('/api/reports/production-agents', requireAuth, async (req, res) => {
+  try {
+    const year = req.query.year || new Date().getFullYear().toString();
+    const result = await pool.query(`
+      SELECT COALESCE("Owner Team Override", 'Unassigned') as team,
+        COALESCE("List Agent Override", 'Unknown') as agent,
+        COUNT(*) as closed,
+        COALESCE(SUM("Fees Total"), 0) as fees,
+        COALESCE(SUM("Consideration"), 0) as volume,
+        COALESCE(AVG("Consideration"), 0) as avg_price
+      FROM web.escrow_complete
+      WHERE "Escrow Status" = 'C' AND "Escrow Category" = 'Escrow'
+        AND "Close Date Year" = $1::int
+      GROUP BY "Owner Team Override", "List Agent Override"
+      ORDER BY COUNT(*) DESC
+    `, [year]);
+    res.json({ agents: result.rows, year });
+  } catch (err) {
+    res.status(500).json({ error: 'Data unavailable', detail: err.message });
+  }
+});
+
+// Recent closings — detail
+app.get('/api/reports/recent-closings', requireAuth, async (req, res) => {
+  try {
+    const days = parseInt(req.query.days) || 30;
+    const result = await pool.query(`
+      SELECT "Escrow Number" as escrow_number,
+        "Close Date"::text as close_date,
+        "Property Address" as address,
+        COALESCE("List Agent Override", "Listing Agent 1") as agent,
+        "Owner Team Override" as team,
+        "Consideration" as price,
+        "Fees Total" as fees,
+        "Escrow Type Desc" as type
+      FROM web.escrow_complete
+      WHERE "Escrow Status" = 'C' AND "Escrow Category" = 'Escrow'
+        AND "Close Date" >= CURRENT_DATE - $1
+      ORDER BY "Close Date" DESC
+    `, [days]);
+    res.json({ closings: result.rows, count: result.rowCount, days });
+  } catch (err) {
+    res.status(500).json({ error: 'Data unavailable', detail: err.message });
+  }
+});
+
 // Task detail for a single escrow
 // Source: web.task_complete (materialized from cae.gold_vw_task_complete)
 app.get('/api/reports/tasks/:escrowNumber', requireAuth, async (req, res) => {
@@ -556,6 +630,10 @@ function requireAmyAccess(req, res, next) {
 
 app.get('/amy', requireAmyAccess, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'amy.html'));
+});
+
+app.get('/production', requireAmyAccess, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'management.html'));
 });
 
 // ══════════════════════════════════════════════

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Production — California Advantage Escrow</title>
+  <link rel="stylesheet" href="/css/mpower.css?v=5" />
+  <style>
+    .metric-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: var(--space-lg); margin-bottom: var(--space-xl); }
+    .metric-box { background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--space-lg); text-align: center; }
+    .metric-value { font-size: 28px; font-weight: 700; color: var(--accent); }
+    .metric-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+    .metric-sub { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .data-table th { text-align: left; padding: 10px 12px; border-bottom: 2px solid var(--border); color: var(--text-muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; }
+    .data-table th:hover { color: var(--accent); }
+    .data-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--text-primary); }
+    .data-table tr:hover td { background: var(--surface-hover); }
+    .data-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .chart-container { position: relative; height: 250px; margin-bottom: var(--space-lg); }
+    .chart-bar-group { display: flex; align-items: flex-end; gap: 2px; height: 200px; }
+    .chart-bar { min-width: 30px; flex: 1; border-radius: 4px 4px 0 0; transition: opacity 0.2s; position: relative; }
+    .chart-bar:hover { opacity: 0.8; }
+    .chart-bar-fees { background: var(--accent); }
+    .chart-bar-label { position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); font-size: 9px; color: var(--text-muted); white-space: nowrap; }
+    .chart-bar-value { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 9px; color: var(--text-muted); white-space: nowrap; }
+    .chart-legend { display: flex; gap: 16px; font-size: 11px; color: var(--text-muted); margin-top: 28px; }
+    .period-select { padding: 6px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-card); color: var(--text-primary); font-size: 12px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="grid-bg"></div>
+  <nav class="topnav">
+    <div class="topnav-left">
+      <button class="collapse-btn" onclick="toggleSidebar()" title="Toggle sidebar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+      </button>
+      <a href="/" class="topnav-brand">
+        <span style="font-weight: 700;">California Advantage Escrow</span> <span style="font-size: 9px; padding: 1px 6px; border-radius: 6px; background: #fef3c7; color: #92400e; font-weight: 600; vertical-align: middle;">BETA</span>
+      </a>
+    </div>
+    <div class="topnav-center">
+      <a href="/" class="topnav-link">CAE</a>
+      <a href="/reports" class="topnav-link">Reports</a>
+      <a href="#" class="topnav-link">Data</a>
+    </div>
+    <div class="topnav-right">
+      <span class="topnav-env">California Advantage Escrow</span>
+      <div class="account-menu">
+        <button class="account-btn" onclick="toggleAccountMenu()" id="account-btn">
+          <div class="account-avatar" id="account-avatar" style="color: white; display: flex; align-items: center; justify-content: center;">A</div>
+        </button>
+        <div class="account-dropdown" id="account-dropdown">
+          <div class="account-info" id="account-info">
+            <div class="account-name" id="account-name">User</div>
+            <div class="account-email" id="account-email">email</div>
+          </div>
+          <div class="account-divider"></div>
+          <button class="account-option" onclick="toggleTheme()">
+            <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            <span>Toggle Theme</span>
+          </button>
+          <a href="/auth/logout" class="account-option">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span>Sign Out</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+        <a href="/" class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          <span>Dashboard</span>
+        </a>
+        <div class="nav-section">
+          <div class="nav-section-label">Escrow</div>
+          <a href="/reports" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span>Daily Reports</span>
+          </a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-label">Officers</div>
+          <a href="/officers/erin" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>Erin Ferrell</span>
+          </a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-label">Tools</div>
+          <a href="/dre-lookup" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <span>DRE Lookup</span>
+          </a>
+        </div>
+        <a href="/amy" class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>Amy's Corner</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <p>Powered by <span class="brand">mPowerAnalytics</span></p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="content">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <h1 class="page-title">Production <span style="font-size: 11px; padding: 2px 8px; border-radius: 8px; background: #fef3c7; color: #92400e; font-weight: 600; vertical-align: middle;">BETA</span></h1>
+            <p class="page-subtitle">Closings, fee income, and agent performance</p>
+          </div>
+          <select id="yearSelect" class="period-select" onchange="loadAgents()">
+            <option value="2026" selected>2026</option>
+            <option value="2025">2025</option>
+          </select>
+        </div>
+
+        <!-- YTD Summary -->
+        <div id="ytd-section"></div>
+
+        <!-- Monthly Trend Chart -->
+        <div id="chart-section" style="margin-top: var(--space-xl);"></div>
+
+        <!-- Agent Production -->
+        <div id="agents-section" style="margin-top: var(--space-xl);"></div>
+
+        <!-- Recent Closings -->
+        <div id="recent-section" style="margin-top: var(--space-xl);"></div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    function fmt(n) { return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n); }
+    const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    let monthlyData = [];
+    let agentData = [];
+
+    // Load everything
+    Promise.all([
+      fetch('/api/reports/production-monthly').then(r => r.json()),
+      fetch('/api/reports/production-agents?year=2026').then(r => r.json()),
+      fetch('/api/reports/recent-closings?days=30').then(r => r.json()),
+    ]).then(([monthly, agents, recent]) => {
+      monthlyData = monthly.months;
+      agentData = agents.agents;
+      renderYTD(monthlyData);
+      renderChart(monthlyData);
+      renderAgents(agents);
+      renderRecent(recent);
+    });
+
+    function loadAgents() {
+      const year = document.getElementById('yearSelect').value;
+      fetch('/api/reports/production-agents?year=' + year)
+        .then(r => r.json())
+        .then(data => {
+          agentData = data.agents;
+          renderAgents(data);
+        });
+    }
+
+    function renderYTD(months) {
+      const currentYear = new Date().getFullYear();
+      const ytd = months.filter(m => parseInt(m.year) === currentYear);
+      const totalClosed = ytd.reduce((a, m) => a + parseInt(m.closed), 0);
+      const totalFees = ytd.reduce((a, m) => a + parseFloat(m.fees), 0);
+      const totalVolume = ytd.reduce((a, m) => a + parseFloat(m.volume), 0);
+      const avgFee = totalClosed > 0 ? totalFees / totalClosed : 0;
+
+      document.getElementById('ytd-section').innerHTML = `
+        <div class="card">
+          <div class="card-title">${currentYear} Year-to-Date</div>
+          <div class="metric-grid">
+            <div class="metric-box">
+              <div class="metric-value">${totalClosed}</div>
+              <div class="metric-label">Closings</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-value">${fmt(totalFees)}</div>
+              <div class="metric-label">Fee Income</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-value">${fmt(totalVolume)}</div>
+              <div class="metric-label">Total Volume</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-value">${fmt(avgFee)}</div>
+              <div class="metric-label">Avg Fee / Closing</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderChart(months) {
+      const maxFees = Math.max(...months.map(m => parseFloat(m.fees)));
+      const el = document.getElementById('chart-section');
+      el.innerHTML = `
+        <div class="card">
+          <div class="card-title">Monthly Fee Income</div>
+          <div class="card-subtitle">2025 - Present</div>
+          <div style="padding: 20px 0 30px 0;">
+            <div class="chart-bar-group">
+              ${months.map(m => {
+                const height = maxFees > 0 ? (parseFloat(m.fees) / maxFees * 180) : 0;
+                const label = monthNames[parseInt(m.month_num)] + (m.month_num === '01' ? ' ' + m.year : '');
+                return `
+                  <div class="chart-bar chart-bar-fees" style="height: ${Math.max(height, 2)}px;" title="${label}: ${parseInt(m.closed)} closed, ${fmt(m.fees)}">
+                    <div class="chart-bar-value">${parseInt(m.closed)}</div>
+                    <div class="chart-bar-label">${label}</div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+            <div class="chart-legend">
+              <span>Bar height = fee income | Number = closings</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAgents(data) {
+      const agents = data.agents;
+      const year = data.year;
+      document.getElementById('agents-section').innerHTML = `
+        <div class="card">
+          <div class="card-title">Agent Production — ${year}</div>
+          <div class="card-subtitle">Closings and fee income by listing agent</div>
+          <div style="overflow-x: auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Team</th>
+                  <th>Agent</th>
+                  <th class="num">Closings</th>
+                  <th class="num">Fees</th>
+                  <th class="num">Volume</th>
+                  <th class="num">Avg Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${agents.map(a => `
+                  <tr>
+                    <td>${a.team}</td>
+                    <td><strong>${a.agent}</strong></td>
+                    <td class="num">${a.closed}</td>
+                    <td class="num">${fmt(a.fees)}</td>
+                    <td class="num">${fmt(a.volume)}</td>
+                    <td class="num">${fmt(a.avg_price)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderRecent(data) {
+      document.getElementById('recent-section').innerHTML = `
+        <div class="card">
+          <div class="card-title">Recent Closings (${data.days} days)</div>
+          <div class="card-subtitle">${data.count} escrows closed</div>
+          <div style="overflow-x: auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Escrow #</th>
+                  <th>Close Date</th>
+                  <th>Property</th>
+                  <th>Agent</th>
+                  <th>Team</th>
+                  <th>Type</th>
+                  <th class="num">Price</th>
+                  <th class="num">Fees</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${data.closings.map(c => `
+                  <tr>
+                    <td><strong>${c.escrow_number}</strong></td>
+                    <td>${c.close_date || ''}</td>
+                    <td>${c.address || ''}</td>
+                    <td>${c.agent || ''}</td>
+                    <td>${c.team || ''}</td>
+                    <td>${c.type || ''}</td>
+                    <td class="num">${c.price ? fmt(c.price) : ''}</td>
+                    <td class="num">${c.fees ? fmt(c.fees) : ''}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>
