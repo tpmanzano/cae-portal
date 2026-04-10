@@ -623,34 +623,12 @@ app.get('/api/reports/tasks/:escrowNumber', requireAuth, async (req, res) => {
 app.get('/api/admin/google-drive-inventory', requireAdmin, async (req, res) => {
   try {
     const { exec } = require('child_process');
+    const scriptPath = path.join(__dirname, 'scripts', 'drive_inventory.py');
     const result = await new Promise((resolve, reject) => {
-      exec('python -c "' +
-        'from google.oauth2 import service_account;' +
-        'from googleapiclient.discovery import build;' +
-        'import json;' +
-        'creds = service_account.Credentials.from_service_account_file(' +
-        "r\'C:\\\\Users\\\\Manzano\\\\.config\\\\gcloud\\\\mpower-ops-service-account.json\'," +
-        "scopes=[\'https://www.googleapis.com/auth/drive\']," +
-        "subject=\'tom@mpoweranalytics.com\'" +
-        ');' +
-        'service = build(\'drive\', \'v3\', credentials=creds);' +
-        'results = service.files().list(' +
-        "pageSize=100," +
-        "fields=\'files(id,name,mimeType,modifiedTime,shared,owners,permissions,webViewLink)\'," +
-        "orderBy=\'modifiedTime desc\'" +
-        ').execute();' +
-        'files = results.get(\'files\', []);' +
-        'output = [];' +
-        'for f in files:' +
-        '  shared_with = [];' +
-        '  for p in f.get(\'permissions\', []):' +
-        '    if p.get(\'emailAddress\') and p.get(\'emailAddress\') != \'tom@mpoweranalytics.com\':' +
-        '      shared_with.append(p.get(\'emailAddress\'));' +
-        '  output.append({\'name\': f[\'name\'], \'type\': f[\'mimeType\'].split(\'.\')[-1] if \'.\' in f[\'mimeType\'] else f[\'mimeType\'], \'modified\': f.get(\'modifiedTime\',\'\')[:10], \'shared_with\': shared_with, \'link\': f.get(\'webViewLink\',\'\'), \'id\': f[\'id\']});' +
-        'print(json.dumps(output))"',
-        { timeout: 15000 },
+      exec('python "' + scriptPath + '"',
+        { timeout: 20000 },
         (err, stdout, stderr) => {
-          if (err) reject(err);
+          if (err) reject(new Error(stderr || err.message));
           else resolve(stdout.trim());
         }
       );
