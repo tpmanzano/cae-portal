@@ -391,6 +391,57 @@ app.get('/api/reports/officer-workload', requireAuth, async (req, res) => {
   }
 });
 
+// ══════════════════════════════════════════════
+// ADMIN API ROUTES — database inventory (Tom only)
+// ══════════════════════════════════════════════
+
+app.get('/api/admin/view-inventory', requireAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        v.table_name as name,
+        CASE
+          WHEN v.table_name LIKE 'dim_%' THEN 'Dimension'
+          WHEN v.table_name LIKE 'ggl_%' THEN 'Google'
+          WHEN v.table_name LIKE 'gold_%' THEN 'Gold'
+          WHEN v.table_name LIKE 'silver_%' THEN 'Silver'
+          WHEN v.table_name LIKE 'lgcy_%' THEN 'Legacy'
+          ELSE 'Other'
+        END as layer,
+        (SELECT count FROM (SELECT reltuples::bigint as count FROM pg_class WHERE relname = v.table_name) x) as row_estimate,
+        (SELECT COUNT(*) FROM information_schema.columns c WHERE c.table_schema = v.table_schema AND c.table_name = v.table_name) as columns,
+        CASE WHEN w.table_name IS NOT NULL THEN 'Yes' ELSE 'No' END as materialized,
+        CASE WHEN w.table_name IS NOT NULL THEN 'web.' || w.table_name ELSE '' END as web_table
+      FROM information_schema.views v
+      LEFT JOIN information_schema.tables w ON w.table_schema = 'web' AND w.table_name = v.table_name
+      WHERE v.table_schema = 'cae'
+      ORDER BY
+        CASE
+          WHEN v.table_name LIKE 'silver_%' THEN 1
+          WHEN v.table_name LIKE 'gold_%' THEN 2
+          WHEN v.table_name LIKE 'dim_%' THEN 3
+          WHEN v.table_name LIKE 'ggl_%' THEN 4
+          WHEN v.table_name LIKE 'lgcy_%' THEN 5
+          ELSE 6
+        END, v.table_name
+    `);
+
+    // Also get web schema tables with actual counts
+    const webResult = await pool.query(`
+      SELECT table_name, pg_total_relation_size('web.' || table_name) as size_bytes
+      FROM information_schema.tables
+      WHERE table_schema = 'web' AND table_type = 'BASE TABLE'
+    `);
+    const webTables = {};
+    webResult.rows.forEach(r => { webTables[r.table_name] = r.size_bytes; });
+
+    res.json({ views: result.rows, webTables });
+  } catch (err) {
+    console.error('View inventory error:', err.message);
+    res.status(500).json({ error: 'Database unavailable', detail: err.message });
+  }
+});
+
 // Local dev bypass — auto-login when no OAuth configured
 if (!process.env.GOOGLE_CLIENT_ID && !process.env.MICROSOFT_CLIENT_ID) {
   app.use((req, res, next) => {

@@ -192,6 +192,43 @@
           }
         </script>
 
+        <div class="section-title">Database — View Inventory</div>
+        <div class="card" style="overflow-x: auto;">
+          <div class="card-title">PostgreSQL Views (cae schema)</div>
+          <div class="card-subtitle">Live from database — refreshes on page load</div>
+          <div id="view-inventory"><div class="loading" style="text-align:center;padding:20px;color:var(--text-muted);">Loading view inventory...</div></div>
+        </div>
+
+        <script>
+          fetch('/api/admin/view-inventory')
+            .then(r => r.json())
+            .then(data => {
+              const el = document.getElementById('view-inventory');
+              if (data.error) { el.innerHTML = '<div style="color:#c53030;">'+data.error+'</div>'; return; }
+              const rows = data.views.map(v => `
+                <tr>
+                  <td>${v.name}</td>
+                  <td>${v.layer}</td>
+                  <td class="num">${parseInt(v.row_estimate).toLocaleString()}</td>
+                  <td class="num">${v.columns}</td>
+                  <td>${v.materialized}</td>
+                  <td>${v.web_table}</td>
+                </tr>
+              `).join('');
+              el.innerHTML = `
+                <table class="data-table" style="font-size:12px;">
+                  <thead><tr>
+                    <th>View Name</th><th>Layer</th><th>Rows (est)</th><th>Columns</th><th>Materialized</th><th>Web Table</th>
+                  </tr></thead>
+                  <tbody>${rows}</tbody>
+                </table>
+              `;
+            })
+            .catch(err => {
+              document.getElementById('view-inventory').innerHTML = '<div style="color:#c53030;">Failed to load: '+err.message+'</div>';
+            });
+        </script>
+
         <div class="section-title">Infrastructure</div>
         <div class="card" style="overflow-x: auto;">
           <div class="card-title">Railway Constraints</div>
