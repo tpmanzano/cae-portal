@@ -152,6 +152,14 @@
 
     let allAgentData = {};
     let currentPeriod = '2026';
+    let currentTeamFilter = 'all';
+    let recentSortCol = null;
+    let recentSortAsc = true;
+    let agentSortCol = null;
+    let agentSortAsc = true;
+    let currentClosings = [];
+    let currentAgents = [];
+    let currentLabel = '';
 
     // Load all years upfront — full closing detail for filtering
     Promise.all([
@@ -220,6 +228,13 @@
         periodLabel = period;
         closings = [];
       }
+
+      currentAgents = agents;
+      currentClosings = closings;
+      currentLabel = periodLabel;
+      currentTeamFilter = 'all';
+      recentSortCol = null;
+      agentSortCol = null;
 
       renderSummary(agents, periodLabel);
       renderTeamChart(agents, periodLabel);
@@ -430,6 +445,30 @@
 
     function renderAgentTable(agents, label) {
       const totalFees = agents.reduce((a, x) => a + parseFloat(x.fees), 0);
+
+      // Sort if needed
+      var sorted = agents;
+      if (agentSortCol) {
+        sorted = agents.slice().sort(function(a, b) {
+          var va, vb;
+          if (agentSortCol === 'closed' || agentSortCol === 'fees' || agentSortCol === 'volume' || agentSortCol === 'avg_price' || agentSortCol === 'share') {
+            if (agentSortCol === 'share') {
+              va = totalFees > 0 ? parseFloat(a.fees) / totalFees : 0;
+              vb = totalFees > 0 ? parseFloat(b.fees) / totalFees : 0;
+            } else {
+              va = parseFloat(a[agentSortCol]) || 0;
+              vb = parseFloat(b[agentSortCol]) || 0;
+            }
+          } else {
+            va = (a[agentSortCol] || '').toLowerCase();
+            vb = (b[agentSortCol] || '').toLowerCase();
+          }
+          if (va < vb) return agentSortAsc ? -1 : 1;
+          if (va > vb) return agentSortAsc ? 1 : -1;
+          return 0;
+        });
+      }
+
       document.getElementById('agent-table-section').innerHTML = `
         <div class="card">
           <div class="card-title">Agent Detail — ${label}</div>
@@ -437,17 +476,17 @@
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Team</th>
-                  <th>Agent</th>
-                  <th class="num">Closings</th>
-                  <th class="num">Fees</th>
-                  <th class="num">Share</th>
-                  <th class="num">Volume</th>
-                  <th class="num">Avg Price</th>
+                  <th onclick="sortAgents('team')">Team</th>
+                  <th onclick="sortAgents('agent')">Agent</th>
+                  <th class="num" onclick="sortAgents('closed')">Closings</th>
+                  <th class="num" onclick="sortAgents('fees')">Fees</th>
+                  <th class="num" onclick="sortAgents('share')">Share</th>
+                  <th class="num" onclick="sortAgents('volume')">Volume</th>
+                  <th class="num" onclick="sortAgents('avg_price')">Avg Price</th>
                 </tr>
               </thead>
               <tbody>
-                ${agents.map(a => {
+                ${sorted.map(a => {
                   const share = totalFees > 0 ? (parseFloat(a.fees) / totalFees * 100).toFixed(1) : '0.0';
                   return `
                   <tr>
@@ -467,36 +506,94 @@
       `;
     }
 
+    function setTeamFilter(team) {
+      currentTeamFilter = team;
+      recentSortCol = null;
+      renderRecent(currentClosings, currentLabel);
+    }
+
+    function sortRecent(col) {
+      if (recentSortCol === col) { recentSortAsc = !recentSortAsc; }
+      else { recentSortCol = col; recentSortAsc = true; }
+      renderRecent(currentClosings, currentLabel);
+    }
+
+    function sortAgents(col) {
+      if (agentSortCol === col) { agentSortAsc = !agentSortAsc; }
+      else { agentSortCol = col; agentSortAsc = true; }
+      renderAgentTable(currentAgents, currentLabel);
+    }
+
     function renderRecent(closings, label) {
       if (closings.length === 0) {
         document.getElementById('recent-section').innerHTML = '';
         return;
       }
+
+      // Get unique teams for slicers
+      var teams = [];
+      var seen = {};
+      closings.forEach(function(c) {
+        var t = c.team || 'Unassigned';
+        if (!seen[t]) { seen[t] = true; teams.push(t); }
+      });
+      teams.sort();
+
+      // Filter by team
+      var filtered = currentTeamFilter === 'all' ? closings : closings.filter(function(c) {
+        return (c.team || 'Unassigned') === currentTeamFilter;
+      });
+
+      // Sort
+      if (recentSortCol) {
+        filtered = filtered.slice().sort(function(a, b) {
+          var va = a[recentSortCol] || '';
+          var vb = b[recentSortCol] || '';
+          if (recentSortCol === 'price' || recentSortCol === 'fees') {
+            va = parseFloat(va) || 0; vb = parseFloat(vb) || 0;
+          }
+          if (va < vb) return recentSortAsc ? -1 : 1;
+          if (va > vb) return recentSortAsc ? 1 : -1;
+          return 0;
+        });
+      }
+
+      var teamBtns = '<button class="period-btn ' + (currentTeamFilter === 'all' ? 'active' : '') + '" onclick="setTeamFilter(\'all\')">All Teams (' + closings.length + ')</button>';
+      teams.forEach(function(t) {
+        var count = closings.filter(function(c) { return (c.team || 'Unassigned') === t; }).length;
+        teamBtns += '<button class="period-btn ' + (currentTeamFilter === t ? 'active' : '') + '" onclick="setTeamFilter(\'' + t.replace(/'/g, "\\'") + '\')">' + t + ' (' + count + ')</button>';
+      });
+
       document.getElementById('recent-section').innerHTML = `
         <div class="card">
-          <div class="card-title">Recent Closings</div>
-          <div class="card-subtitle">${closings.length} closings</div>
+          <div class="card-title">Closings Detail</div>
+          <div class="card-subtitle">${filtered.length} closings</div>
+          <div class="period-bar" style="margin-bottom: var(--space-md);">
+            ${teamBtns}
+          </div>
           <div style="overflow-x: auto;">
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Escrow #</th>
-                  <th>Close Date</th>
-                  <th>Property</th>
-                  <th>Agent</th>
-                  <th>Team</th>
-                  <th class="num">Price</th>
-                  <th class="num">Fees</th>
+                  <th onclick="sortRecent('escrow_number')">Escrow #</th>
+                  <th onclick="sortRecent('close_date')">Close Date</th>
+                  <th onclick="sortRecent('address')">Property</th>
+                  <th onclick="sortRecent('agent')">Agent</th>
+                  <th onclick="sortRecent('team')">Team</th>
+                  <th onclick="sortRecent('type')">Type</th>
+                  <th class="num" onclick="sortRecent('price')">Price</th>
+                  <th class="num" onclick="sortRecent('fees')">Fees</th>
                 </tr>
               </thead>
               <tbody>
-                ${closings.slice(0, 50).map(c => `
+                ${filtered.map(c => `
                   <tr>
                     <td><strong>${c.escrow_number}</strong></td>
                     <td>${c.close_date || ''}</td>
                     <td>${c.address || ''}</td>
                     <td>${c.agent || ''}</td>
                     <td>${c.team || ''}</td>
+                    <td>${c.type || ''}</td>
                     <td class="num">${c.price ? fmt(c.price) : ''}</td>
                     <td class="num">${c.fees ? fmt(c.fees) : ''}</td>
                   </tr>
