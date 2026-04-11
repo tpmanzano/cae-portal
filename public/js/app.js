@@ -120,6 +120,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           const section = document.createElement('div');
           section.className = 'nav-section';
           section.id = 'operator-nav-section';
+          section.style.marginTop = '16px';
 
           const label = document.createElement('div');
           label.className = 'nav-section-label';
