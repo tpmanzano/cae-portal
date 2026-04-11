@@ -678,6 +678,23 @@ app.get('/officers/erin', requireOfficerAccess('erin'), (req, res) => {
 });
 
 // ══════════════════════════════════════════════
+// SANDBOX — Tom only (feature development workspace)
+// ══════════════════════════════════════════════
+
+const SANDBOX_ALLOWED = ['tpmanzano@gmail.com', 'tom@mpoweranalytics.com'];
+
+function requireSandbox(req, res, next) {
+  if (!req.isAuthenticated()) return res.redirect('/login');
+  const email = (req.user.email || '').toLowerCase();
+  if (SANDBOX_ALLOWED.includes(email)) return next();
+  res.status(403).send('Access restricted');
+}
+
+app.get('/sandbox', requireSandbox, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'sandbox.html'));
+});
+
+// ══════════════════════════════════════════════
 // ADMIN — Tom only
 // ══════════════════════════════════════════════
 
